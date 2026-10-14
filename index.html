@@ -1323,20 +1323,20 @@
         <div class="dash-filter-bar" style="margin-bottom: 0;">
           <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
             <span style="font-weight: 700; color: #1e293b;">🎯 분석 대상 클래스:</span>
-            <select id="dashClassFilter" class="form-select" style="width: auto; min-width: 260px;" onchange="handleClassFilterChange()">
-              <option value="ALL">전체 통합 진단 결과</option>
+            <select id="dashClassFilter" class="form-select" style="width: auto; min-width: 260px;" onchange="handleClassFilterChange('dashClassFilter')">
+              <!-- JS 동적 렌더링 (해당 과정 우선 선택) -->
             </select>
           </div>
 
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button type="button" class="btn btn-secondary btn-sm" onclick="generateSampleResponses()" title="체험을 위해 가상 응답 5건을 즉시 추가합니다.">
-              🎲 샘플 응답 5건 추가
+            <button type="button" class="btn btn-secondary btn-sm" onclick="generateSampleResponses()" title="현재 선택된 과정에 가상 응답 5건을 독립 추가합니다.">
+              🎲 현재 과정에 샘플 5건 추가
             </button>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="downloadCSVReport()" title="전체 응답 데이터를 CSV 엑셀 파일로 저장">
-              📥 엑셀(CSV) 다운로드
+            <button type="button" class="btn btn-secondary btn-sm" onclick="downloadCSVReport()" title="현재 선택된 과정의 응답 데이터를 CSV 엑셀 파일로 저장">
+              📥 해당 과정 엑셀(CSV) 다운로드
             </button>
-            <button type="button" class="btn btn-secondary btn-sm" style="color: #ef4444;" onclick="handleClearData()" title="저장된 응답 데이터를 초기화합니다">
-              🗑️ 데이터 초기화
+            <button type="button" class="btn btn-secondary btn-sm" style="color: #ef4444;" onclick="handleClearData()" title="선택된 과정 또는 전체 데이터를 초기화합니다">
+              🗑️ 해당 과정 데이터 초기화
             </button>
           </div>
         </div>
@@ -1446,20 +1446,36 @@
          ========================================================================= -->
     <section id="screen3" class="screen-section" style="display: none;">
       
-      <!-- 대시보드 상단 헤더 배너 (분석 대상 클래스 및 진단 당사자 선택) -->
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; flex-wrap: wrap; gap: 14px; background: var(--glass-card); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 14px 20px; box-shadow: var(--glass-shadow);">
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: var(--primary-gradient); color: #fff; font-size: 1.1rem; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);">📊</span>
-          <div>
-            <div style="font-size: 0.78rem; color: var(--text-sub); font-weight: 600;">진단 분석 대상 클래스</div>
-            <div id="dashActiveClassName" style="font-size: 1.05rem; font-weight: 800; color: #0f172a;">전체 통합 진단 결과 분석</div>
+      <!-- 대시보드 상단 헤더 배너 (분석 대상 교육 과정 및 진단자 선택) -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; flex-wrap: wrap; gap: 14px; background: var(--glass-card); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 16px 20px; box-shadow: var(--glass-shadow);">
+        <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 290px;">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 10px; background: var(--primary-gradient); color: #fff; font-size: 1.15rem; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);">📊</span>
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span style="font-size: 0.78rem; color: var(--text-sub); font-weight: 700;">분석 대상 교육 과정</span>
+              <span id="dashCourseScopeBadge" class="badge" style="background: #dcfce7; color: #15803d; font-size: 0.74rem; padding: 3px 9px; font-weight: 800;">
+                🎯 해당 과정 응답자만 독립 집계
+              </span>
+            </div>
+            
+            <!-- 운영자용 과정 선택 드롭다운 -->
+            <div id="dashCourseSelectWrap" style="margin-top: 5px;">
+              <select id="dashClassFilterScreen3" class="form-select" style="padding: 6px 12px; font-size: 0.95rem; font-weight: 800; color: #0f172a; max-width: 480px; background: rgba(255,255,255,0.95); border: 1.5px solid #cbd5e1;" onchange="handleClassFilterChange('dashClassFilterScreen3')">
+                <!-- JS 동적 렌더링 -->
+              </select>
+            </div>
+            
+            <!-- 교육생용 고정 과정명 안내 -->
+            <div id="dashCourseStudentName" style="display: none; font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-top: 4px;">
+              -
+            </div>
           </div>
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
           <!-- [운영자 모드 전용] 분석 대상 진단자 선택 드롭다운 -->
           <div id="dashRespondentFilterWrap" style="display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.85); padding: 6px 12px; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
-            <label for="dashRespondentFilter" style="font-size: 0.84rem; font-weight: 700; color: #334155; margin: 0; white-space: nowrap;">👤 [운영자] 분석 대상 진단자:</label>
+            <label for="dashRespondentFilter" style="font-size: 0.84rem; font-weight: 700; color: #334155; margin: 0; white-space: nowrap;">👤 분석 대상자:</label>
             <select id="dashRespondentFilter" class="form-select" style="width: auto; min-width: 170px; padding: 4px 8px; font-size: 0.86rem; height: 32px; font-weight: 600;" onchange="handleRespondentFilterChange()">
               <!-- JS로 동적 렌더링 -->
             </select>
@@ -1472,27 +1488,34 @@
           </div>
 
           <span class="badge" id="dashComparisonBadge" style="background: #e0e7ff; color: #4338ca; font-size: 0.82rem; padding: 7px 14px; font-weight: 700; border-radius: 9999px;">
-            ⚡ 진단자 vs 전체 종합평균 비교 분석
+            ⚡ 진단자 vs 해당 과정 평균 비교
           </span>
+
+          <button type="button" class="btn btn-secondary btn-sm" onclick="downloadCSVReport()" title="해당 과정 응답 결과 CSV 다운로드" style="height: 34px; padding: 0 12px; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 4px;">
+            📥 해당 과정 CSV
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="window.print()" title="결과 리포트 인쇄 또는 PDF 저장" style="height: 34px; padding: 0 12px; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 4px;">
+            🖨️ 인쇄/PDF
+          </button>
         </div>
       </div>
 
-      <!-- 요약 KPI 통계 카드 그리드 (진단자 점수 vs 전체 평균 비교) -->
+      <!-- 요약 KPI 통계 카드 그리드 (진단자 점수 vs 해당 과정 평균 비교) -->
       <div class="dash-kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
         <div class="kpi-card">
-          <span class="kpi-title">👥 총 응답자 수</span>
+          <span class="kpi-title" id="kpiTotalResponsesTitle">👥 해당 과정 응답자 수</span>
           <span class="kpi-value" id="kpiTotalResponses">0명</span>
-          <span class="kpi-sub">실시간 수집 완료</span>
+          <span class="kpi-sub" id="kpiTotalResponsesSub">해당 과정 실시간 수집</span>
         </div>
 
         <div class="kpi-card" style="border-top: 3px solid #6366f1;">
           <span class="kpi-title" id="kpiMyScoreTitle">🎯 진단자(당사자) 점수</span>
           <span class="kpi-value" id="kpiMyScore" style="color: #4f46e5;">0.0 <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">/ 5.0</span></span>
-          <span class="kpi-sub" id="kpiMyScoreGap">전체 평균 대비 0.0점</span>
+          <span class="kpi-sub" id="kpiMyScoreGap">해당 과정 평균 대비 0.0점</span>
         </div>
 
         <div class="kpi-card" style="border-top: 3px solid #0891b2;">
-          <span class="kpi-title">🌐 전체 그룹 종합 평균</span>
+          <span class="kpi-title" id="kpiAvgScoreTitle">🌐 해당 과정 수강생 평균</span>
           <span class="kpi-value" id="kpiAvgScore" style="color: #0891b2;">0.0 <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">/ 5.0</span></span>
           <span class="kpi-sub" id="kpiScoreStatus">데이터 대기 중</span>
         </div>
@@ -1523,12 +1546,12 @@
             </span>
             <span style="display: flex; align-items: center; gap: 6px;">
               <span style="display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: #94a3b8;"></span>
-              <span>🌐 전체 그룹 평균</span>
+              <span id="dashBarLegendAvg">🌐 해당 과정 평균</span>
             </span>
           </div>
         </div>
         <p class="section-desc">
-          1.결과물 검증 및 완성도 평가, 2.판단 충돌·의사결정, 3.업무 AI 재설계, 4.협업·소통 AI 접목, 5.격차 해소·동료 평준화 등 5대 영역별로 <strong>진단 당사자의 점수와 전체 평균을 한눈에 비교</strong>합니다.
+          1.결과물 검증 및 완성도 평가, 2.판단 충돌·의사결정, 3.업무 AI 재설계, 4.협업·소통 AI 접목, 5.격차 해소·동료 평준화 등 5대 영역별로 <strong>진단 당사자의 점수와 해당 과정 평균을 한눈에 비교</strong>합니다.
         </p>
 
         <!-- 영역별 바 차트 -->
@@ -1542,7 +1565,7 @@
         <h2 class="section-title">
           <span>🎯 5대 영역별 심층 분석 및 진단자 맞춤형 실천 Action Plan</span>
         </h2>
-        <p class="section-desc">전체 평균 대비 진단 당사자의 점수 위치를 분석하여, <strong>나의 강점 진단 및 팀원으로서 실무 현장에서 즉시 실행할 실천 지침</strong>을 제공합니다.</p>
+        <p class="section-desc">해당 과정 평균 대비 진단 당사자의 점수 위치를 분석하여, <strong>나의 강점 진단 및 팀원으로서 실무 현장에서 즉시 실행할 실천 지침</strong>을 제공합니다.</p>
 
         <div id="domainActionPlansContainer" class="action-plans-grid">
           <!-- JS로 5대 영역별 맞춤형 진단 및 실천 가이드 카드 렌더링 -->
@@ -1552,9 +1575,9 @@
       <!-- 문항별 세부 평균 및 취약점 분석 -->
       <div class="glass-panel">
         <h2 class="section-title">
-          <span>🔍 20개 문항별 상세 분석 및 진단자 vs 전체 평균 비교표</span>
+          <span>🔍 20개 문항별 상세 분석 및 진단자 vs 해당 과정 평균 비교표</span>
         </h2>
-        <p class="section-desc">문항별 진단 당사자 응답 점수와 전체 수강생 평균을 대조하여 구체적인 강점 문항과 보완 문항을 확인합니다.</p>
+        <p class="section-desc">문항별 진단 당사자 응답 점수와 해당 과정 수강생 평균을 대조하여 구체적인 강점 문항과 보완 문항을 확인합니다.</p>
 
         <div class="table-container">
           <table class="score-table">
@@ -1564,7 +1587,7 @@
                 <th style="width: 140px;">영역</th>
                 <th>진단 문항 내용</th>
                 <th style="width: 100px; text-align: center;" id="thRespondentHeader">👤 진단자</th>
-                <th style="width: 100px; text-align: center;">🌐 전체평균</th>
+                <th style="width: 100px; text-align: center;" id="thAvgScoreHeader">🌐 과정평균</th>
                 <th style="width: 100px; text-align: center;">격차 (Gap)</th>
                 <th style="width: 110px; text-align: center;" id="thEvaluationHeader">진단자 판정</th>
               </tr>
@@ -1872,6 +1895,9 @@
       // 대시보드 역할별 UI 제어 (분석 대상자 변경 셀렉트는 운영자 모드 전용)
       const respondentFilterWrap = document.getElementById("dashRespondentFilterWrap");
       const studentRespondentInfo = document.getElementById("dashStudentRespondentInfo");
+      const courseSelectWrap = document.getElementById("dashCourseSelectWrap");
+      const courseStudentName = document.getElementById("dashCourseStudentName");
+      const dashCourseScopeBadge = document.getElementById("dashCourseScopeBadge");
       const comparisonBadge = document.getElementById("dashComparisonBadge");
       const kpiMyScoreTitle = document.getElementById("kpiMyScoreTitle");
       const kpiTopDomainTitle = document.getElementById("kpiTopDomainTitle");
@@ -1900,13 +1926,22 @@
         }
 
         if (appSubtitleText) {
-          appSubtitleText.innerText = "조직의 AI 리더십 5대 역량 진단에 참여하고 즉각적인 분석 피드백을 확인하세요.";
+          appSubtitleText.innerText = "조직의 AI 실무 5대 핵심 역량 진단에 참여하고 해당 과정 실시간 피드백을 확인하세요.";
+        }
+
+        // 교육생 모드 대시보드: 과정 변경 셀렉트 숨기고 해당 과정명 고정 노출 (타 과정 데이터 엄격 격리)
+        if (courseSelectWrap) courseSelectWrap.style.display = "none";
+        if (courseStudentName) courseStudentName.style.display = "block";
+        if (dashCourseScopeBadge) {
+          dashCourseScopeBadge.innerHTML = "🎯 해당 과정 동료 수강생 데이터만 비교 (타 과정 제외)";
+          dashCourseScopeBadge.style.background = "#dcfce7";
+          dashCourseScopeBadge.style.color = "#15803d";
         }
 
         // 교육생 모드 대시보드: 진단자 변경 셀렉트 숨김, 본인 정보 고정 표시
         if (respondentFilterWrap) respondentFilterWrap.style.display = "none";
         if (studentRespondentInfo) studentRespondentInfo.style.display = "inline-flex";
-        if (comparisonBadge) comparisonBadge.innerHTML = "⚡ 나의 점수 vs 전체 종합평균 비교 분석";
+        if (comparisonBadge) comparisonBadge.innerHTML = "⚡ 나의 점수 vs 해당 과정 수강생 평균 비교";
         if (kpiMyScoreTitle) kpiMyScoreTitle.innerText = "🎯 나의(본인) 진단 점수";
         if (kpiTopDomainTitle) kpiTopDomainTitle.innerText = "🏆 나의 최우수 강점";
         if (kpiLowDomainTitle) kpiLowDomainTitle.innerText = "🌱 나의 보완 집중";
@@ -1941,13 +1976,17 @@
         }
 
         if (appSubtitleText) {
-          appSubtitleText.innerText = "조직의 인공지능 전환(AX) 리더십을 5대 핵심 영역(총 20문항)으로 진단하고 즉각적인 피드백을 제공합니다.";
+          appSubtitleText.innerText = "팀원의 실무 AI 활용 역량을 5대 핵심 영역(총 20문항)으로 자가 진단하고 즉각적인 분석 피드백을 제공합니다.";
         }
+
+        // 운영자 모드 대시보드: 과정 변경 셀렉트 활성화
+        if (courseSelectWrap) courseSelectWrap.style.display = "block";
+        if (courseStudentName) courseStudentName.style.display = "none";
 
         // 운영자 모드 대시보드: 분석 대상 진단자 변경 셀렉트 활성화
         if (respondentFilterWrap) respondentFilterWrap.style.display = "inline-flex";
         if (studentRespondentInfo) studentRespondentInfo.style.display = "none";
-        if (comparisonBadge) comparisonBadge.innerHTML = "⚡ [운영자] 진단자 vs 전체 종합평균 비교 분석";
+        if (comparisonBadge) comparisonBadge.innerHTML = "⚡ [운영자] 진단자 vs 해당 과정 평균 비교 분석";
         if (kpiMyScoreTitle) kpiMyScoreTitle.innerText = "🎯 진단자(당사자) 점수";
         if (kpiTopDomainTitle) kpiTopDomainTitle.innerText = "🏆 진단자 최우수 강점";
         if (kpiLowDomainTitle) kpiLowDomainTitle.innerText = "🌱 진단자 보완 집중";
@@ -2073,15 +2112,42 @@
     });
 
     /**
-     * 설문 생성 및 배포 탭에서 분석 대상 클래스 선택 변경 시
+     * 현재 분석 대상 교육 과정 ID 반환 (해당 과정 엄격 우선순위)
      */
-    function handleClassFilterChange() {
-      renderDashboard();
-      const selectElem = document.getElementById("dashClassFilter");
-      if (selectElem) {
-        const text = selectElem.options[selectElem.selectedIndex]?.text || "선택된 클래스";
-        showToast(`대시보드 분석 대상이 [${text}] (으)로 변경되었습니다.`);
+    function getSelectedDashboardClassId() {
+      const activeId = localStorage.getItem(STORAGE_KEYS.ACTIVE_CLASS_ID);
+      const classes = getStoredClasses();
+      const defaultId = activeId || (classes.length > 0 ? classes[0].id : null);
+
+      const f3 = document.getElementById("dashClassFilterScreen3");
+      if (f3 && f3.value) return f3.value;
+
+      const f1 = document.getElementById("dashClassFilter");
+      if (f1 && f1.value) return f1.value;
+
+      return defaultId || "ALL";
+    }
+
+    /**
+     * 분석 대상 교육 과정 선택 변경 시 (Screen 1 및 Screen 3 드롭다운 양방향 동기화)
+     */
+    function handleClassFilterChange(sourceElemId) {
+      const source = document.getElementById(sourceElemId || "dashClassFilterScreen3") || document.getElementById("dashClassFilter");
+      if (!source) return;
+      const targetVal = source.value;
+
+      // 화면 1과 화면 3의 클래스 필터 셀렉트박스 양방향 동기화
+      const f1 = document.getElementById("dashClassFilter");
+      const f3 = document.getElementById("dashClassFilterScreen3");
+      if (f1 && f1.value !== targetVal) f1.value = targetVal;
+      if (f3 && f3.value !== targetVal) f3.value = targetVal;
+
+      if (targetVal !== "ALL") {
+        localStorage.setItem(STORAGE_KEYS.ACTIVE_CLASS_ID, targetVal);
       }
+      renderDashboard();
+      const text = source.options[source.selectedIndex]?.text || "선택된 교육 과정";
+      showToast(`분석 대상이 [${text}] 데이터로 변경되었습니다.`);
     }
 
     /* ==========================================================================
@@ -2385,10 +2451,14 @@
       // 배포 카드 표시 및 QR코드 그리기 (교육생 전용 role=student 탑재)
       showShareResult(newClass);
 
-      // 드롭다운 갱신
+      // 드롭다운 갱신 및 신규 클래스 자동 선택
       syncClassSelectDropdowns();
+      const f1 = document.getElementById("dashClassFilter");
+      const f3 = document.getElementById("dashClassFilterScreen3");
+      if (f1) f1.value = newClass.id;
+      if (f3) f3.value = newClass.id;
 
-      showToast("새로운 진단 설문 클래스가 생성되었습니다!");
+      showToast(`새로운 진단 설문 클래스 [${newClass.name}] 가 개설되었습니다!`);
     }
 
     /**
@@ -2775,6 +2845,14 @@
     function closeSuccessModalAndGoDash() {
       const modal = document.getElementById("submitSuccessModal");
       if (modal) modal.style.display = "none";
+
+      // 방금 응답한 해당 과정으로 필터 고정하여 즉시 독립 평가 표시
+      const activeId = localStorage.getItem(STORAGE_KEYS.ACTIVE_CLASS_ID);
+      const f1 = document.getElementById("dashClassFilter");
+      const f3 = document.getElementById("dashClassFilterScreen3");
+      if (f1 && activeId) f1.value = activeId;
+      if (f3 && activeId) f3.value = activeId;
+
       switchScreen(3);
     }
 
@@ -2795,29 +2873,44 @@
     }
 
     /**
-     * 대시보드 전체 화면 렌더링 (KPI, 5대 영역 듀얼 바 차트, 맞춤 액션 플랜, 문항별 비교표)
+     * 대시보드 전체 화면 렌더링 (해당 과정 참여자 전용 독립 평가, KPI, 5대 영역 듀얼 바 차트, 맞춤 액션 플랜, 문항별 비교표)
      */
     function renderDashboard() {
-      const filterSelect = document.getElementById("dashClassFilter");
-      const selectedClassId = filterSelect ? filterSelect.value : "ALL";
+      const classes = getStoredClasses();
+      const selectedClassId = getSelectedDashboardClassId();
+      const currentClass = classes.find(c => c.id === selectedClassId);
 
-      // 상단 분석 대상 클래스 표시 텍스트 갱신
-      const activeClassElem = document.getElementById("dashActiveClassName");
-      if (activeClassElem) {
+      // 드롭다운 UI 값 동기화
+      const f1 = document.getElementById("dashClassFilter");
+      const f3 = document.getElementById("dashClassFilterScreen3");
+      if (f1 && f1.value !== selectedClassId && selectedClassId) f1.value = selectedClassId;
+      if (f3 && f3.value !== selectedClassId && selectedClassId) f3.value = selectedClassId;
+
+      // 교육생용 과정명 텍스트 표시
+      const studentCourseNameElem = document.getElementById("dashCourseStudentName");
+      if (studentCourseNameElem) {
+        studentCourseNameElem.innerText = currentClass ? `${currentClass.name} (${currentClass.date})` : "현재 교육 과정";
+      }
+
+      // 상단 배너 뱃지 갱신 (독립 집계 안내)
+      const scopeBadge = document.getElementById("dashCourseScopeBadge");
+      if (scopeBadge) {
         if (selectedClassId === "ALL") {
-          activeClassElem.innerText = "전체 통합 진단 결과 분석 (모든 클래스)";
+          scopeBadge.innerHTML = "⚠️ 전체 과정 누적 통계 모드 (비교 참고용)";
+          scopeBadge.style.background = "#fef3c7";
+          scopeBadge.style.color = "#b45309";
         } else {
-          const classes = getStoredClasses();
-          const found = classes.find(c => c.id === selectedClassId);
-          activeClassElem.innerText = found ? `${found.name} (${found.date}) 결과 분석` : "선택 클래스 진단 결과 분석";
+          scopeBadge.innerHTML = `🎯 [${currentClass ? currentClass.name : '해당 과정'}] 참여자만 독립 집계`;
+          scopeBadge.style.background = "#dcfce7";
+          scopeBadge.style.color = "#15803d";
         }
       }
 
       const allResponses = getStoredResponses();
-      // 선택된 클래스 필터 적용
-      const filteredResponses = (selectedClassId === "ALL")
-        ? allResponses
-        : allResponses.filter(r => r.classId === selectedClassId);
+      // [핵심] 선택된 해당 교육 과정의 응답 데이터만 엄격하게 독립 추출 (과거/타 과정 자료 원천 배제)
+      const filteredResponses = (selectedClassId && selectedClassId !== "ALL")
+        ? allResponses.filter(r => r.classId === selectedClassId)
+        : allResponses;
 
       const totalCount = filteredResponses.length;
 
@@ -2828,18 +2921,18 @@
 
       if (totalCount === 0) {
         if (respondentSelect) {
-          respondentSelect.innerHTML = `<option value="">응답 데이터 없음</option>`;
+          respondentSelect.innerHTML = `<option value="">해당 과정 응답 데이터 없음 (0명)</option>`;
         }
         document.getElementById("kpiMyScore").innerHTML = `0.0 <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">/ 5.0</span>`;
-        document.getElementById("kpiMyScoreGap").innerText = "진단 데이터 대기 중";
+        document.getElementById("kpiMyScoreGap").innerText = "해당 과정 응답 데이터 대기 중";
         document.getElementById("kpiAvgScore").innerHTML = `0.0 <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">/ 5.0</span>`;
-        document.getElementById("kpiScoreStatus").innerText = "응답 데이터 없음";
+        document.getElementById("kpiScoreStatus").innerText = "해당 과정 응답 대기 중";
         document.getElementById("kpiTopDomain").innerText = "-";
         document.getElementById("kpiTopDomainScore").innerText = "데이터 없음";
         document.getElementById("kpiLowDomain").innerText = "-";
         document.getElementById("kpiLowDomainScore").innerText = "데이터 없음";
 
-        renderEmptyDashboard();
+        renderEmptyDashboard(`선택하신 [${currentClass ? currentClass.name : '해당 교육 과정'}]에 아직 제출된 진단 응답이 없습니다.`);
         return;
       }
 
@@ -2937,18 +3030,18 @@
       const myGapElem = document.getElementById("kpiMyScoreGap");
       if (myGapElem) {
         if (overallGap > 0) {
-          myGapElem.innerHTML = `<span style="color: #16a34a; font-weight: 700;">전체 대비 +${overallGap.toFixed(2)}점 상회 ▲</span> (${escapeHtml(activeRespondent.respondentName)} ${escapeHtml(activeRespondent.respondentRole ? '· ' + activeRespondent.respondentRole : '')})`;
+          myGapElem.innerHTML = `<span style="color: #16a34a; font-weight: 700;">해당 과정 평균 대비 +${overallGap.toFixed(2)}점 상회 ▲</span> (${escapeHtml(activeRespondent.respondentName)}${activeRespondent.respondentRole ? ' · ' + escapeHtml(activeRespondent.respondentRole) : ''})`;
         } else if (overallGap < 0) {
-          myGapElem.innerHTML = `<span style="color: #dc2626; font-weight: 700;">전체 대비 ${overallGap.toFixed(2)}점 보완 권장 ▼</span> (${escapeHtml(activeRespondent.respondentName)} ${escapeHtml(activeRespondent.respondentRole ? '· ' + activeRespondent.respondentRole : '')})`;
+          myGapElem.innerHTML = `<span style="color: #dc2626; font-weight: 700;">해당 과정 평균 대비 ${overallGap.toFixed(2)}점 보완 권장 ▼</span> (${escapeHtml(activeRespondent.respondentName)}${activeRespondent.respondentRole ? ' · ' + escapeHtml(activeRespondent.respondentRole) : ''})`;
         } else {
-          myGapElem.innerHTML = `<span style="color: #475569; font-weight: 700;">전체 평균과 동일 ●</span> (${escapeHtml(activeRespondent.respondentName)} ${escapeHtml(activeRespondent.respondentRole ? '· ' + activeRespondent.respondentRole : '')})`;
+          myGapElem.innerHTML = `<span style="color: #475569; font-weight: 700;">해당 과정 평균과 동일 ●</span> (${escapeHtml(activeRespondent.respondentName)}${activeRespondent.respondentRole ? ' · ' + escapeHtml(activeRespondent.respondentRole) : ''})`;
         }
       }
 
-      // 전체 평균 KPI 업데이트
+      // 해당 과정 수강생 평균 KPI 업데이트
       document.getElementById("kpiAvgScore").innerHTML = `${overallAvg.toFixed(2)} <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">/ 5.0</span>`;
       let statusText = "기초 도입 단계";
-      if (overallAvg >= 4.2) statusText = "🌟 선도적 AI 혁신 리더십 수준";
+      if (overallAvg >= 4.2) statusText = "🌟 선도적 실무 AI 혁신 수준";
       else if (overallAvg >= 3.6) statusText = "🚀 활발한 실무 적용 수준";
       else if (overallAvg >= 3.0) statusText = "🌱 체계화 진행 단계";
       else statusText = "⚠️ 집중 교육 및 역량 강화 필요";
@@ -3050,11 +3143,11 @@
                 </div>
               </div>
 
-              <!-- 2) 전체 그룹 종합 평균 바 -->
+              <!-- 2) 해당 과정 그룹 종합 평균 바 -->
               <div class="dual-bar-item">
                 <div class="dual-bar-label" style="color: #64748b;">
                   <span>🌐</span>
-                  <span>전체 평균:</span>
+                  <span>과정 평균:</span>
                 </div>
                 <div class="dual-bar-track">
                   <div class="bar-fill" style="width: ${avgPercent}%; background: #94a3b8;"></div>
@@ -3097,7 +3190,7 @@
         const avgScore = Number((domainAverages[domainKey] || 0).toFixed(2));
         const gap = Number((myScore - avgScore).toFixed(2));
 
-        // 진단 당사자의 점수 및 전체 평균 대비 격차를 기반으로 맞춤형 진단 도출
+        // 진단 당사자의 점수 및 해당 과정 평균 대비 격차를 기반으로 맞춤형 진단 도출
         const isSuperior = (myScore >= 4.0 || (myScore >= 3.6 && gap >= 0.25));
         const isLow = (myScore < 3.2 || gap <= -0.4);
 
@@ -3112,7 +3205,7 @@
           statusTitle = `🌟 [${nameLabel}] 님의 핵심 강점 역량`;
           diagnosisColor = "#16a34a";
           boxBg = "#f0fdf4";
-          diagnosisText = `${isStudent ? '나의 점수' : '진단 당사자 점수'}는 <strong>${myScore.toFixed(2)}점</strong>으로 전체 평균(<strong>${avgScore.toFixed(2)}점</strong> 대비 <strong>+${gap.toFixed(2)}점</strong>)을 크게 상회하는 탁월한 핵심 강점 영역입니다. ${guidance.highDiagnosis}`;
+          diagnosisText = `${isStudent ? '나의 점수' : '진단 당사자 점수'}는 <strong>${myScore.toFixed(2)}점</strong>으로 해당 과정 수강생 평균(<strong>${avgScore.toFixed(2)}점</strong> 대비 <strong>+${gap.toFixed(2)}점</strong>)을 크게 상회하는 탁월한 핵심 강점 영역입니다. ${guidance.highDiagnosis}`;
           actionListTitle = "📋 강점 극대화 및 팀 전파 실천 지침 (Action Steps)";
           customActionSteps = [
             `<strong>노하우 표준화:</strong> ${isStudent ? '나의' : '진단자님의'} 우수한 ${info.name.replace(/^[0-9]\.\s*/, '')} 실천 노하우를 팀 가이드라인으로 정리해 공유하세요.`,
@@ -3123,7 +3216,7 @@
           statusTitle = `🌱 [${nameLabel}] 님의 우선 보완 집중 과제`;
           diagnosisColor = "#ea580c";
           boxBg = "#fff7ed";
-          diagnosisText = `${isStudent ? '나의 점수' : '진단 당사자 점수'}는 <strong>${myScore.toFixed(2)}점</strong>으로 전체 평균(<strong>${avgScore.toFixed(2)}점</strong> 대비 <strong>${gap.toFixed(2)}점</strong>) 대비 실무 체계화가 우선 필요한 집중 보완 영역입니다. ${guidance.lowDiagnosis}`;
+          diagnosisText = `${isStudent ? '나의 점수' : '진단 당사자 점수'}는 <strong>${myScore.toFixed(2)}점</strong>으로 해당 과정 수강생 평균(<strong>${avgScore.toFixed(2)}점</strong> 대비 <strong>${gap.toFixed(2)}점</strong>) 대비 실무 체계화가 우선 필요한 집중 보완 영역입니다. ${guidance.lowDiagnosis}`;
           actionListTitle = "📋 우선 개선 및 현장 체계화 실천 지침 (Action Steps)";
           customActionSteps = [
             guidance.actionSteps[0],
@@ -3134,7 +3227,7 @@
           statusTitle = `⚡ [${nameLabel}] 님의 실무 적용 단계`;
           diagnosisColor = "#0284c7";
           boxBg = "#f0f9ff";
-          diagnosisText = `${isStudent ? '나의 점수' : '진단 당사자 점수'}는 <strong>${myScore.toFixed(2)}점</strong>(전체 평균 ${avgScore.toFixed(2)}점, 격차 ${gap >= 0 ? '+' : ''}${gap.toFixed(2)}점)으로 실무에 안정적으로 적용하고 계십니다. 정기적인 템플릿화와 피드백 루틴을 강화하면 최상위 리더십 역량으로 도약할 수 있습니다.`;
+          diagnosisText = `${isStudent ? '나의 점수' : '진단 당사자 점수'}는 <strong>${myScore.toFixed(2)}점</strong>(해당 과정 평균 ${avgScore.toFixed(2)}점, 격차 ${gap >= 0 ? '+' : ''}${gap.toFixed(2)}점)으로 실무에 안정적으로 적용하고 계십니다. 정기적인 템플릿화와 피드백 루틴을 강화하면 최상위 실무 AI 역량으로 도약할 수 있습니다.`;
           actionListTitle = "📋 역량 고도화 및 루틴 체계화 실천 지침 (Action Steps)";
           customActionSteps = [
             guidance.actionSteps[0],
@@ -3156,7 +3249,7 @@
                     👤 ${isStudent ? '나의 점수' : '당사자'} ${myScore.toFixed(2)}점
                   </span>
                   <span class="action-score-badge" style="color: #64748b;">
-                    🌐 전체평균 ${avgScore.toFixed(2)}점
+                    🌐 과정평균 ${avgScore.toFixed(2)}점
                   </span>
                 </div>
               </div>
@@ -3262,41 +3355,48 @@
     }
 
     /**
-     * 데이터가 없을 때의 빈 대시보드 뷰 렌더링
+     * 데이터가 없을 때의 빈 대시보드 뷰 렌더링 (해당 과정 기준 안내)
      */
-    function renderEmptyDashboard() {
+    function renderEmptyDashboard(customMsg) {
+      const msg = customMsg || "선택된 교육 과정에 아직 수집된 진단 응답 데이터가 없습니다.";
       const barContainer = document.getElementById("domainBarsContainer");
       if (barContainer) {
         barContainer.innerHTML = `
           <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
             <div style="font-size: 2.5rem; margin-bottom: 8px;">📭</div>
-            <p>아직 수집된 응답 데이터가 없습니다.</p>
-            <p style="font-size: 0.88rem; margin-top: 6px;">[설문 응답] 탭에서 진단을 진행하거나, 상단의 [샘플 응답 5건 추가] 버튼을 클릭해 보세요.</p>
+            <p style="font-weight: 700; color: #334155; font-size: 1.05rem;">${escapeHtml(msg)}</p>
+            <p style="font-size: 0.9rem; margin-top: 8px; color: #64748b;">
+              [설문 응답] 탭에서 수강생 진단을 진행하거나, 화면 1 관리 패널에서 [샘플 응답 5건 추가] 버튼을 클릭하면 실시간 분석 결과가 나타납니다.
+            </p>
           </div>
         `;
       }
       const actionContainer = document.getElementById("domainActionPlansContainer");
       if (actionContainer) {
-        actionContainer.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-muted);">진단 데이터가 수집되면 5대 역량별 실천 액션 플랜이 생성됩니다.</div>`;
+        actionContainer.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-muted);">해당 교육 과정의 진단 데이터가 수집되면 5대 역량별 실천 액션 플랜이 생성됩니다.</div>`;
       }
       const tbody = document.getElementById("questionScoreTableBody");
       if (tbody) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 24px; color: var(--text-muted);">수집된 데이터가 없습니다.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 24px; color: var(--text-muted);">해당 교육 과정에 수집된 문항별 데이터가 없습니다.</td></tr>`;
       }
       const essayContainer = document.getElementById("essayFeedbackContainer");
       if (essayContainer) {
-        essayContainer.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-muted);">주관식 답변이 없습니다.</div>`;
+        essayContainer.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-muted);">해당 교육 과정에 제출된 주관식 의견이 없습니다.</div>`;
       }
     }
 
     /**
-     * 시연을 위한 가상 샘플 응답 5건 즉시 추가 함수 (20개 문항 지원, 회사명/이름/직책 3대 속성 반영)
+     * 시연을 위한 가상 샘플 응답 5건 즉시 추가 함수 (현재 선택된 해당 과정에만 독립 추가)
      */
     function generateSampleResponses() {
       const classes = getStoredClasses();
-      const filterSelect = document.getElementById("dashClassFilter");
-      const selectedClassId = (filterSelect && filterSelect.value !== "ALL") ? filterSelect.value : null;
-      const activeId = selectedClassId || localStorage.getItem(STORAGE_KEYS.ACTIVE_CLASS_ID) || ((classes.length > 0) ? classes[0].id : "DEMO_CLASS");
+      const selectedClassId = getSelectedDashboardClassId();
+      const currentClass = classes.find(c => c.id === selectedClassId);
+      const activeId = (selectedClassId && selectedClassId !== "ALL")
+        ? selectedClassId
+        : (localStorage.getItem(STORAGE_KEYS.ACTIVE_CLASS_ID) || (classes[0] ? classes[0].id : "CLASS-AX-MEMBER"));
+
+      const targetClassName = currentClass ? currentClass.name : "현재 교육 과정";
 
       const sampleCompanies = ["(주)미래테크", "글로벌AX솔루션", "현대혁신그룹", "한국AI네트웍스", "넥스트인사이트"];
       const sampleNames = ["강민우 매니저", "오승현 선임", "유하나 프로", "신동혁 연구원", "배소영 개발자"];
@@ -3333,20 +3433,28 @@
       localStorage.setItem(STORAGE_KEYS.RESPONSES, JSON.stringify(responses));
 
       renderDashboard();
-      showToast("체험용 샘플 응답 5건이 추가되었습니다!");
+      showToast(`[${targetClassName}] 과정에 체험용 샘플 응답 5건이 추가되었습니다!`);
     }
 
     /**
-     * CSV 형식으로 전체 응답 데이터 엑셀 다운로드 (한글 인코딩 BOM 지원, 회사명/이름/직책 분리, 20문항 & 5개 영역)
+     * CSV 형식으로 현재 선택 과정 응답 데이터 엑셀 다운로드 (한글 인코딩 BOM 지원, 회사명/이름/직책 분리, 20문항 & 5개 영역)
      */
     function downloadCSVReport() {
-      const responses = getStoredResponses();
+      const selectedClassId = getSelectedDashboardClassId();
+      const allResponses = getStoredResponses();
+      const classes = getStoredClasses();
+      const currentClass = classes.find(c => c.id === selectedClassId);
+
+      // 선택된 과정의 데이터만 다운로드 (ALL인 경우 전체)
+      const responses = (selectedClassId && selectedClassId !== "ALL")
+        ? allResponses.filter(r => r.classId === selectedClassId)
+        : allResponses;
+
       if (responses.length === 0) {
-        showToast("다운로드할 응답 데이터가 없습니다.");
+        showToast("선택된 교육 과정에 다운로드할 응답 데이터가 없습니다.");
         return;
       }
 
-      const classes = getStoredClasses();
       const classMap = {};
       classes.forEach(c => { classMap[c.id] = c.name; });
 
@@ -3429,24 +3537,42 @@
       const url = URL.createObjectURL(blob);
       
       const downloadLink = document.createElement("a");
-      const fileName = `AI_실무_5대역량_진단결과_팀원용_${new Date().toISOString().slice(0,10)}.csv`;
+      const cleanClassName = currentClass ? currentClass.name.replace(/[^a-zA-Z0-9가-힣]/g, "_") : "전체과정";
+      const fileName = `AI_실무5대역량_${cleanClassName}_${new Date().toISOString().slice(0,10)}.csv`;
       downloadLink.setAttribute("href", url);
       downloadLink.setAttribute("download", fileName);
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
 
-      showToast("엑셀(CSV) 리포트가 성공적으로 다운로드되었습니다.");
+      showToast(`[${cleanClassName}] 과정 응답 리포트(CSV)가 다운로드되었습니다.`);
     }
 
     /**
-     * 데이터 초기화 처리
+     * 데이터 초기화 처리 (선택된 과정 독립 초기화 또는 전체 초기화)
      */
     function handleClearData() {
-      if (confirm("정말로 모든 진단 응답 데이터를 초기화하시겠습니까?\n(클래스 정보는 유지됩니다)")) {
-        localStorage.removeItem(STORAGE_KEYS.RESPONSES);
+      const selectedClassId = getSelectedDashboardClassId();
+      const classes = getStoredClasses();
+      const currentClass = classes.find(c => c.id === selectedClassId);
+      const className = currentClass ? currentClass.name : "현재 과정";
+
+      if (!selectedClassId || selectedClassId === "ALL") {
+        if (confirm("정말로 모든 진단 응답 데이터를 전부 초기화하시겠습니까?\n(클래스 정보는 유지됩니다)")) {
+          localStorage.removeItem(STORAGE_KEYS.RESPONSES);
+          renderDashboard();
+          showToast("모든 응답 데이터가 초기화되었습니다.");
+        }
+        return;
+      }
+
+      const choice = confirm(`[과정별 독립 데이터 관리]\n\n현재 선택된 [${className}] 과정의 응답 데이터만 초기화하시겠습니까?\n\n(다른 교육 과정의 응답 데이터는 안전하게 보존됩니다.)`);
+      if (choice) {
+        const all = getStoredResponses();
+        const remaining = all.filter(r => r.classId !== selectedClassId);
+        localStorage.setItem(STORAGE_KEYS.RESPONSES, JSON.stringify(remaining));
         renderDashboard();
-        showToast("응답 데이터가 초기화되었습니다.");
+        showToast(`[${className}] 과정의 응답 데이터가 초기화되었습니다.`);
       }
     }
 
@@ -3475,7 +3601,7 @@
 
     function syncClassSelectDropdowns() {
       const classes = getStoredClasses();
-      const activeId = localStorage.getItem(STORAGE_KEYS.ACTIVE_CLASS_ID);
+      const activeId = localStorage.getItem(STORAGE_KEYS.ACTIVE_CLASS_ID) || (classes[0] ? classes[0].id : null);
 
       // 설문 응답 화면의 셀렉트박스
       const surveySelect = document.getElementById("surveyClassSelect");
@@ -3485,15 +3611,26 @@
         ).join("");
       }
 
-      // 대시보드 필터의 셀렉트박스
-      const dashSelect = document.getElementById("dashClassFilter");
-      if (dashSelect) {
-        const currentVal = dashSelect.value;
-        dashSelect.innerHTML = `
-          <option value="ALL">전체 통합 진단 결과</option>
-          ${classes.map(c => `<option value="${c.id}">${c.name} (${c.date})</option>`).join("")}
+      // 화면 1의 클래스 관리 셀렉트박스
+      const dashSelect1 = document.getElementById("dashClassFilter");
+      if (dashSelect1) {
+        const currentVal = dashSelect1.value || activeId;
+        dashSelect1.innerHTML = `
+          ${classes.map(c => `<option value="${c.id}" ${c.id === currentVal ? 'selected' : ''}>${c.name} (${c.date})</option>`).join("")}
+          <option value="ALL" ${currentVal === 'ALL' ? 'selected' : ''}>📊 [비교용] 전체 과정 누적 합산 통계</option>
         `;
-        if (currentVal) dashSelect.value = currentVal;
+        if (currentVal) dashSelect1.value = currentVal;
+      }
+
+      // 화면 3의 대시보드 상단 과정 필터 셀렉트박스 (양방향 동기화)
+      const dashSelect3 = document.getElementById("dashClassFilterScreen3");
+      if (dashSelect3) {
+        const currentVal = dashSelect3.value || activeId;
+        dashSelect3.innerHTML = `
+          ${classes.map(c => `<option value="${c.id}" ${c.id === currentVal ? 'selected' : ''}>${c.name} (${c.date})</option>`).join("")}
+          <option value="ALL" ${currentVal === 'ALL' ? 'selected' : ''}>📊 [비교용] 전체 과정 누적 합산 통계</option>
+        `;
+        if (currentVal) dashSelect3.value = currentVal;
       }
     }
 
