@@ -1456,6 +1456,10 @@
               <span id="dashCourseScopeBadge" class="badge" style="background: #dcfce7; color: #15803d; font-size: 0.74rem; padding: 3px 9px; font-weight: 800;">
                 🎯 해당 과정 응답자만 독립 집계
               </span>
+              <span id="liveSyncStatusBadge" style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.74rem; font-weight: 700; color: #15803d; background: #f0fdf4; padding: 3px 9px; border-radius: 9999px; border: 1px solid #bbf7d0;">
+                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #22c55e;"></span>
+                <span id="liveSyncStatusText">실시간 서버 연동 ON (PC·스마트폰)</span>
+              </span>
             </div>
             
             <!-- 운영자용 과정 선택 드롭다운 -->
@@ -1491,6 +1495,9 @@
             ⚡ 진단자 vs 해당 과정 평균 비교
           </span>
 
+          <button type="button" class="btn btn-secondary btn-sm" onclick="syncLatestDataFromServer(true)" title="PC 및 스마트폰 최신 응답 즉시 서버 동기화" style="height: 34px; padding: 0 12px; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 4px; color: #15803d; font-weight: 700;">
+            🔄 실시간 새로고침
+          </button>
           <button type="button" class="btn btn-secondary btn-sm" onclick="downloadCSVReport()" title="해당 과정 응답 결과 CSV 다운로드" style="height: 34px; padding: 0 12px; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 4px;">
             📥 해당 과정 CSV
           </button>
@@ -2111,6 +2118,152 @@
       }
     });
 
+    /* ==========================================================================
+       [클라우드 백엔드 REST API 연동 - PC/모바일 멀티 디바이스 실시간 동기화]
+       ========================================================================== */
+
+    async function apiFetchClasses() {
+      try {
+        const res = await fetch('/api/classes');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          localStorage.setItem(STORAGE_KEYS.CLASSES, JSON.stringify(data));
+          return data;
+        }
+      } catch (e) {
+        console.warn('[Sync] 서버 클래스 로드 실패, 로컬 캐시 사용:', e);
+      }
+      return getStoredClasses();
+    }
+
+    async function apiFetchResponses(classId) {
+      try {
+        const query = (classId && classId !== 'ALL') ? `?classId=${encodeURIComponent(classId)}` : '';
+        const res = await fetch(`/api/responses${query}`);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        return Array.isArray(data) ? data : null;
+      } catch (e) {
+        console.warn('[Sync] 서버 응답 로드 실패, 로컬 캐시 사용:', e);
+        return null;
+      }
+    }
+
+    async function apiSaveResponse(responseItem) {
+      try {
+        const res = await fetch('/api/responses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(responseItem)
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        return data;
+      } catch (e) {
+        console.warn('[Sync] 서버 응답 저장 실패 (로컬 캐시 보존):', e);
+        return null;
+      }
+    }
+
+    async function apiSaveClass(classItem) {
+      try {
+        const res = await fetch('/api/classes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(classItem)
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.json();
+      } catch (e) {
+        console.warn('[Sync] 서버 클래스 저장 실패 (로컬 캐시 보존):', e);
+        return null;
+      }
+    }
+
+    async function apiDeleteResponses(classId) {
+      try {
+        const query = (classId && classId !== 'ALL') ? `?classId=${encodeURIComponent(classId)}` : '';
+        const res = await fetch(`/api/responses${query}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.json();
+      } catch (e) {
+        console.warn('[Sync] 서버 응답 삭제 실패:', e);
+        return null;
+      }
+    }
+
+    async function apiBatchAddResponses(responses) {
+      try {
+        const res = await fetch('/api/responses/batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ responses })
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.json();
+      } catch (e) {
+        console.warn('[Sync] 서버 배치 응답 추가 실패:', e);
+        return null;
+      }
+    }
+
+    let dashboardPollingTimer = null;
+    let lastKnownResponseCount = -1;
+
+    function startDashboardPolling() {
+      stopDashboardPolling();
+      // 3초 간격으로 서버 데이터 변경 감지 및 실시간 동기화
+      dashboardPollingTimer = setInterval(async () => {
+        const screen3 = document.getElementById("screen3");
+        if (screen3 && screen3.style.display !== "none") {
+          await syncLatestDataFromServer(false);
+        }
+      }, 3000);
+    }
+
+    function stopDashboardPolling() {
+      if (dashboardPollingTimer) {
+        clearInterval(dashboardPollingTimer);
+        dashboardPollingTimer = null;
+      }
+    }
+
+    /**
+     * 서버로부터 최신 클래스 및 응답 데이터 동기화
+     */
+    async function syncLatestDataFromServer(showNotification = false) {
+      try {
+        const [serverClasses, serverAllResponses] = await Promise.all([
+          apiFetchClasses(),
+          apiFetchResponses('ALL')
+        ]);
+
+        if (serverAllResponses && Array.isArray(serverAllResponses)) {
+          const prevCount = getStoredResponses().length;
+          localStorage.setItem(STORAGE_KEYS.RESPONSES, JSON.stringify(serverAllResponses));
+
+          const syncText = document.getElementById("liveSyncStatusText");
+          if (syncText) {
+            syncText.innerText = `실시간 연동 중 (총 ${serverAllResponses.length}건)`;
+          }
+
+          if (serverAllResponses.length !== lastKnownResponseCount || showNotification) {
+            lastKnownResponseCount = serverAllResponses.length;
+            renderDashboard();
+
+            if (showNotification) {
+              showToast(`🔄 최신 데이터 동기화 완료: 총 ${serverAllResponses.length}명의 응답이 수집되었습니다.`);
+            } else if (serverAllResponses.length > prevCount && prevCount > 0) {
+              showToast(`⚡ 새 진단 응답이 도착했습니다! (총 ${serverAllResponses.length}명)`);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[Sync] 주기적 동기화 오류:', err);
+      }
+    }
+
     /**
      * 현재 분석 대상 교육 과정 ID 반환 (해당 과정 엄격 우선순위)
      */
@@ -2153,31 +2306,38 @@
     /* ==========================================================================
        [초기화 및 생명주기 핸들러]
        ========================================================================== */
-    window.addEventListener("DOMContentLoaded", () => {
+    window.addEventListener("DOMContentLoaded", async () => {
       // 1. 오늘 날짜를 교육 일자 기본값으로 지정
       const todayStr = new Date().toISOString().split('T')[0];
       const dateInput = document.getElementById("inputCourseDate");
       if (dateInput) dateInput.value = todayStr;
 
-      // 2. 기본 클래스 데이터가 없으면 데모용 초기 클래스 생성
+      // 2. 서버에서 최신 데이터(클래스 및 응답) 1차 동기화 (오프라인 시 LocalStorage 사용)
+      try {
+        await syncLatestDataFromServer(false);
+      } catch (e) {
+        console.warn("서버 초기 동기화 지연, 로컬 캐시로 먼저 렌더링:", e);
+      }
+
+      // 3. 기본 클래스 데이터가 없으면 데모용 초기 클래스 생성
       initDefaultData();
 
-      // 3. 화면 1 문항 리스트 미리보기 렌더링
+      // 4. 화면 1 문항 리스트 미리보기 렌더링
       renderQuestionsPreview();
 
-      // 4. 화면 2 설문 응답 폼 문항 렌더링
+      // 5. 화면 2 설문 응답 폼 문항 렌더링
       renderSurveyQuestions();
 
-      // 5. 클래스 드롭다운 목록 동기화
+      // 6. 클래스 드롭다운 목록 동기화
       syncClassSelectDropdowns();
 
-      // 6. 초기 대시보드 렌더링
+      // 7. 초기 대시보드 렌더링
       renderDashboard();
 
-      // 7. QR코드 스캔 또는 공유 URL 파라미터 자동 처리
+      // 8. QR코드 스캔 또는 공유 URL 파라미터 자동 처리
       const hasUrlParam = handleUrlParametersOnLoad();
 
-      // 8. 파라미터 없이 메인 접속 시 현재 활성 클래스의 QR코드 미리 준비
+      // 9. 파라미터 없이 메인 접속 시 현재 활성 클래스의 QR코드 미리 준비
       if (!hasUrlParam) {
         // 기본 저장된 사용자 역할 적용 (기본값: admin)
         const savedRole = localStorage.getItem(STORAGE_KEYS.USER_ROLE) || "admin";
@@ -2379,9 +2539,14 @@
 
       // 4. 화면별 진입 시 추가 처리
       if (screenNum === 2) {
+        stopDashboardPolling();
         updateSurveyHeaderInfo();
       } else if (screenNum === 3) {
         renderDashboard();
+        syncLatestDataFromServer(false);
+        startDashboardPolling();
+      } else {
+        stopDashboardPolling();
       }
 
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -2445,6 +2610,9 @@
       classes.unshift(newClass);
       localStorage.setItem(STORAGE_KEYS.CLASSES, JSON.stringify(classes));
       localStorage.setItem(STORAGE_KEYS.ACTIVE_CLASS_ID, classId);
+
+      // 서버에도 즉시 비동기 저장 (스마트폰/PC 공유)
+      apiSaveClass(newClass);
 
       latestCreatedClass = newClass;
 
@@ -2810,7 +2978,12 @@
         submittedAt: new Date().toISOString()
       };
 
-      // LocalStorage에 응답 저장
+      // 1. 서버에 즉시 비동기 저장 (스마트폰-PC 실시간 동기화)
+      apiSaveResponse(newResponse).then(() => {
+        syncLatestDataFromServer(false);
+      });
+
+      // 2. LocalStorage에도 로컬 캐시로 응답 저장
       const responses = getStoredResponses();
       responses.unshift(newResponse);
       localStorage.setItem(STORAGE_KEYS.RESPONSES, JSON.stringify(responses));
@@ -3432,6 +3605,9 @@
       responses.unshift(...newBatch);
       localStorage.setItem(STORAGE_KEYS.RESPONSES, JSON.stringify(responses));
 
+      // 서버에도 일괄 저장 (스마트폰/PC 공유)
+      apiBatchAddResponses(newBatch);
+
       renderDashboard();
       showToast(`[${targetClassName}] 과정에 체험용 샘플 응답 5건이 추가되었습니다!`);
     }
@@ -3560,6 +3736,7 @@
       if (!selectedClassId || selectedClassId === "ALL") {
         if (confirm("정말로 모든 진단 응답 데이터를 전부 초기화하시겠습니까?\n(클래스 정보는 유지됩니다)")) {
           localStorage.removeItem(STORAGE_KEYS.RESPONSES);
+          apiDeleteResponses('ALL');
           renderDashboard();
           showToast("모든 응답 데이터가 초기화되었습니다.");
         }
@@ -3571,6 +3748,7 @@
         const all = getStoredResponses();
         const remaining = all.filter(r => r.classId !== selectedClassId);
         localStorage.setItem(STORAGE_KEYS.RESPONSES, JSON.stringify(remaining));
+        apiDeleteResponses(selectedClassId);
         renderDashboard();
         showToast(`[${className}] 과정의 응답 데이터가 초기화되었습니다.`);
       }
