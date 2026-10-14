@@ -1,0 +1,8 @@
+{
+  "name": "Remix 진단자 버전 AI·AX 리더십 진단 피드백 대시보드 수정(팀원용)",
+  "description": "팀원을 위한 AI·AX 5대 핵심 실무 역량(결과물 검증, 판단 충돌 의사결정, 업무 재설계, 협업·소통 접목, 디지털 격차 해소) 20문항 진단 설문 생성, 참가자 응답 및 실시간 분석 피드백 대시보드",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

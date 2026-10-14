@@ -1,0 +1,3521 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI·AX 5대 핵심 실무 역량 진단 및 피드백 솔루션 (팀원용)</title>
+  <meta name="description" content="AI 시대 팀원 5대 핵심 실무 역량(1.AI 결과물 검증 및 완성도 평가, 2.AI-인간 판단 충돌 시 의사결정, 3.업무 방식의 AI 친화적 재설계, 4.협업·소통 및 자기관리 AI 접목, 5.디지털 격차 해소 및 동료 상향 평준화) 20문항 진단 및 실시간 분석 피드백 대시보드" />
+  
+  <!-- Pretendard 한글 폰트 적용 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+  <!-- 실제 카메라 스캔 지원 QRCode.js 라이브러리 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    /* ==========================================================================
+       [Immersive UI Theme & Design Tokens]
+       - Immersive Background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%)
+       - Indigo to Purple Brand Gradients: #4f46e5 -> #9333ea
+       - Refined Glassmorphism: backdrop-filter blur(14px), rounded-2xl/3xl cards
+       ========================================================================== */
+    :root {
+      --bg-gradient: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+      --primary-indigo: #4f46e5;
+      --primary-purple: #9333ea;
+      --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
+      --primary-gradient-hover: linear-gradient(135deg, #4338ca 0%, #7e22ce 100%);
+      --bar-gradient: linear-gradient(90deg, #6366f1 0%, #a855f7 100%);
+      
+      --text-main: #1e293b;
+      --text-sub: #64748b;
+      --text-muted: #94a3b8;
+      
+      /* Glassmorphism Styles */
+      --glass-bg: rgba(255, 255, 255, 0.65);
+      --glass-card: rgba(255, 255, 255, 0.72);
+      --glass-border: rgba(255, 255, 255, 0.55);
+      --glass-shadow: 0 10px 30px -5px rgba(79, 70, 229, 0.08), 0 4px 12px -2px rgba(147, 51, 234, 0.05);
+      --glass-blur: blur(14px);
+      
+      /* 5대 핵심 영역별 테마 컬러 */
+      --color-eval: #4f46e5;      /* 1. AI 결과물 검증 및 완성도 평가 - 인디고 */
+      --color-conflict: #0891b2;  /* 2. AI-인간 판단 충돌 시 의사결정 - 시안 */
+      --color-redesign: #059669;  /* 3. 기존 업무 방식의 AI 친화적 재설계 - 에메랄드 */
+      --color-people: #7c3aed;    /* 4. 협업·소통 및 자기관리 AI 접목 - 바이올렛 */
+      --color-equalize: #ea580c;  /* 5. 디지털 격차 해소 및 동료 상향 평준화 - 오렌지 */
+      
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 24px;
+      --radius-full: 9999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* 은은한 배경 오라 장식 */
+    .bg-blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    .blob-1 {
+      width: 500px;
+      height: 500px;
+      top: -120px;
+      left: -120px;
+      background: #c7d2fe;
+    }
+    .blob-2 {
+      width: 550px;
+      height: 550px;
+      bottom: -120px;
+      right: -120px;
+      background: #e9d5ff;
+    }
+    .blob-3 {
+      width: 380px;
+      height: 380px;
+      top: 35%;
+      left: 55%;
+      background: #dbeafe;
+    }
+
+    /* 커스텀 스크롤바 */
+    .survey-scroll {
+      scrollbar-width: thin;
+      scrollbar-color: #cbd5e1 transparent;
+    }
+    .survey-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .survey-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+
+    /* 레이아웃 컨테이너 */
+    .app-container {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px 20px 80px 20px;
+      flex: 1;
+    }
+
+    /* ==========================================================================
+       [상단 헤더 및 네비게이션 탭]
+       ========================================================================== */
+    header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 18px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--primary-indigo);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.12);
+      margin-bottom: 12px;
+    }
+
+    .brand-icon-box {
+      width: 20px;
+      height: 20px;
+      background: var(--primary-gradient);
+      color: #ffffff;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .app-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #0f172a;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4c1d95 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .app-subtitle {
+      font-size: 1.02rem;
+      color: var(--text-sub);
+      font-weight: 400;
+    }
+
+    /* 상단 네비게이션 탭 (3개 주요 화면 전환) */
+    .nav-tabs-wrapper {
+      display: flex;
+      justify-content: center;
+      margin: 24px 0 32px 0;
+    }
+
+    .nav-tabs {
+      display: inline-flex;
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      padding: 6px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+      gap: 6px;
+      max-width: 100%;
+      overflow-x: auto;
+    }
+
+    .nav-tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      border: none;
+      border-radius: var(--radius-full);
+      background: transparent;
+      color: var(--text-sub);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+    }
+
+    .nav-tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.65);
+    }
+
+    .nav-tab-btn.active {
+      background: var(--primary-gradient);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+    }
+
+    /* ==========================================================================
+       [공통 글래스모피즘 카드 및 요소 스타일]
+       ========================================================================== */
+    .glass-panel {
+      background: var(--glass-card);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      box-shadow: var(--glass-shadow);
+      margin-bottom: 24px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+    }
+
+    .section-desc {
+      color: var(--text-sub);
+      font-size: 0.95rem;
+      margin-bottom: 24px;
+    }
+
+    /* 폼 입력 요소 */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 8px;
+    }
+
+    .form-label .required {
+      color: #ef4444;
+      margin-left: 4px;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 13px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(203, 213, 225, 0.9);
+      background: rgba(255, 255, 255, 0.85);
+      font-size: 0.98rem;
+      color: var(--text-main);
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--primary-indigo);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18);
+      background: #ffffff;
+    }
+
+    .form-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+    }
+
+    /* 버튼 스타일 */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 28px;
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary-gradient);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-gradient-hover);
+      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.85);
+      color: #334155;
+      border: 1px solid rgba(203, 213, 225, 0.9);
+    }
+
+    .btn-secondary:hover {
+      background: #ffffff;
+      color: #0f172a;
+      border-color: #94a3b8;
+      transform: translateY(-1px);
+    }
+
+    .btn-sm {
+      padding: 8px 18px;
+      font-size: 0.88rem;
+      border-radius: var(--radius-sm);
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    /* 뱃지 스타일 */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-eval {
+      background: #e0e7ff;
+      color: var(--color-eval);
+    }
+    .badge-conflict {
+      background: #cffafe;
+      color: var(--color-conflict);
+    }
+    .badge-trust {
+      background: #cffafe;
+      color: var(--color-conflict);
+    }
+    .badge-redesign {
+      background: #dcfce7;
+      color: var(--color-redesign);
+    }
+    .badge-people {
+      background: #f3e8ff;
+      color: var(--color-people);
+    }
+    .badge-leader {
+      background: #f3e8ff;
+      color: var(--color-people);
+    }
+    .badge-equalize {
+      background: #ffedd5;
+      color: var(--color-equalize);
+    }
+    .badge-enable {
+      background: #ffedd5;
+      color: var(--color-equalize);
+    }
+
+    /* ==========================================================================
+       [화면 1. 설문 생성 및 배포 전용 스타일]
+       ========================================================================== */
+    .questions-preview-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .question-preview-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 18px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      transition: all 0.2s ease;
+    }
+
+    .question-preview-item:hover {
+      background: rgba(255, 255, 255, 0.85);
+      border-color: rgba(199, 210, 254, 0.9);
+      transform: translateX(2px);
+    }
+
+    .q-num-pill {
+      background: #1e293b;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 0.82rem;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      min-width: 32px;
+      text-align: center;
+    }
+
+    .q-text-wrap {
+      flex: 1;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+
+    /* 링크 생성 완료 카드 */
+    .share-result-card {
+      display: none;
+      background: linear-gradient(135deg, rgba(238, 242, 255, 0.95) 0%, rgba(250, 245, 255, 0.95) 100%);
+      border: 1.5px solid #c7d2fe;
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      margin-top: 24px;
+      text-align: center;
+      box-shadow: 0 12px 32px -6px rgba(79, 70, 229, 0.12);
+      animation: fadeIn 0.4s ease;
+    }
+
+    .qr-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .qr-canvas-box {
+      background: #ffffff;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      display: inline-block;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .link-copy-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: var(--radius-md);
+      padding: 8px 14px;
+      max-width: 560px;
+      margin: 14px auto;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+
+    .link-url-text {
+      flex: 1;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.9rem;
+      color: var(--primary-indigo);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       [화면 2. 진단 설문 응답 전용 스타일]
+       ========================================================================== */
+    .survey-header-banner {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4c1d95 100%);
+      color: #ffffff;
+      padding: 30px 34px;
+      border-radius: var(--radius-lg);
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 25px -5px rgba(49, 46, 129, 0.3);
+    }
+
+    .survey-header-banner::after {
+      content: "";
+      position: absolute;
+      top: -30px;
+      right: -30px;
+      width: 180px;
+      height: 180px;
+      background: var(--primary-gradient);
+      opacity: 0.3;
+      border-radius: 50%;
+      filter: blur(30px);
+    }
+
+    .survey-course-name {
+      font-size: 1.7rem;
+      font-weight: 800;
+      margin-bottom: 10px;
+      letter-spacing: -0.02em;
+    }
+
+    .survey-purpose-quote {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(8px);
+      border-left: 4px solid #a855f7;
+      padding: 14px 20px;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 0.98rem;
+      color: #f1f5f9;
+      margin-top: 16px;
+      line-height: 1.55;
+    }
+
+    /* 진행도 바 */
+    .progress-bar-container {
+      margin-bottom: 24px;
+      background: var(--glass-card);
+      backdrop-filter: var(--glass-blur);
+      padding: 16px 22px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-sub);
+      margin-bottom: 8px;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: #e2e8f0;
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--bar-gradient);
+      border-radius: var(--radius-full);
+      transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* 설문 문항 카드 */
+    .survey-q-card {
+      background: var(--glass-card);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 26px;
+      margin-bottom: 20px;
+      box-shadow: var(--glass-shadow);
+      transition: all 0.25s ease;
+    }
+
+    .survey-q-card.answered {
+      border-left: 5px solid var(--primary-indigo);
+      background: rgba(255, 255, 255, 0.85);
+    }
+
+    .survey-q-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .survey-q-title {
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: #1e293b;
+      line-height: 1.55;
+      margin-bottom: 20px;
+    }
+
+    /* 1~5점 척도 선택 버튼 그리드 (Immersive Circular Rating) */
+    .scale-options-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+
+    .scale-option-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 8px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1.5px solid #e2e8f0;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+
+    .scale-option-btn:hover {
+      border-color: #a5b4fc;
+      background: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.12);
+    }
+
+    .scale-option-btn.selected {
+      background: var(--primary-gradient) !important;
+      border-color: transparent !important;
+      color: #ffffff !important;
+      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+      transform: translateY(-2px);
+    }
+
+    .scale-score {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .scale-label {
+      font-size: 0.75rem;
+      text-align: center;
+      color: var(--text-sub);
+    }
+
+    .scale-option-btn.selected .scale-label {
+      color: rgba(255, 255, 255, 0.95) !important;
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       [화면 3. 진단 결과 대시보드 전용 스타일]
+       ========================================================================== */
+    .dash-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      padding: 18px 24px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .dash-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .kpi-card {
+      background: var(--glass-card);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      padding: 22px;
+      box-shadow: var(--glass-shadow);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .kpi-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-sub);
+      margin-bottom: 6px;
+    }
+
+    .kpi-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .kpi-sub {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* 4대 영역 바 차트 컨테이너 */
+    .domain-chart-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 18px;
+    }
+
+    .domain-bar-row {
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      border-radius: var(--radius-md);
+      padding: 20px 22px;
+      transition: all 0.2s ease;
+    }
+
+    .domain-bar-row:hover {
+      background: rgba(255, 255, 255, 0.9);
+      border-color: #c7d2fe;
+    }
+
+    .domain-bar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .domain-name-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .domain-title-text {
+      font-size: 1.08rem;
+      font-weight: 800;
+      color: #1e293b;
+    }
+
+    .domain-score-text {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .domain-score-sub {
+      font-size: 0.86rem;
+      font-weight: normal;
+      color: var(--text-muted);
+    }
+
+    /* 듀얼 비교 바 차트 (진단자 vs 전체평균) */
+    .dual-bars-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 12px 0 10px 0;
+      background: rgba(248, 250, 252, 0.75);
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+    }
+
+    .dual-bar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dual-bar-label {
+      min-width: 105px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .dual-bar-track {
+      flex: 1;
+      height: 12px;
+      background: #e2e8f0;
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .dual-bar-score {
+      min-width: 58px;
+      text-align: right;
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .gap-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 9999px;
+      line-height: 1;
+    }
+    .gap-pill.positive {
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+    .gap-pill.negative {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+    .gap-pill.equal {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+    }
+
+    .bar-track {
+      width: 100%;
+      height: 14px;
+      background: #f1f5f9;
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: var(--radius-full);
+      transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .domain-guide-text {
+      margin-top: 12px;
+      font-size: 0.88rem;
+      color: #475569;
+      line-height: 1.5;
+    }
+
+    /* 문항별 상세 점수 테이블 */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 16px;
+    }
+
+    .score-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      text-align: left;
+    }
+
+    .score-table th {
+      background: rgba(241, 245, 249, 0.8);
+      padding: 13px 16px;
+      color: #475569;
+      font-weight: 800;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .score-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #334155;
+    }
+
+    .score-table tr:hover td {
+      background: rgba(248, 250, 252, 0.8);
+    }
+
+    /* 5대 영역별 심층 분석 및 실천 액션 플랜 카드 그리드 */
+    .action-plans-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      margin-top: 18px;
+    }
+
+    .action-plan-card {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .action-plan-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(79, 70, 229, 0.08);
+      border-color: rgba(199, 210, 254, 0.9);
+    }
+
+    .action-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .action-card-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .action-score-badge {
+      font-size: 0.85rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+
+    .action-diagnosis-box {
+      background: #f8fafc;
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      font-size: 0.88rem;
+      color: #334155;
+      line-height: 1.55;
+      margin-bottom: 14px;
+      border-left: 3px solid #6366f1;
+    }
+
+    .action-list-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #475569;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-steps-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .action-step-item {
+      font-size: 0.86rem;
+      color: #334155;
+      line-height: 1.5;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .action-step-icon {
+      color: #10b981;
+      font-weight: bold;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* 주관식 답변 리스트 */
+    .feedback-comment-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .comment-card {
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #a855f7;
+      border-radius: var(--radius-md);
+      padding: 18px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s ease;
+    }
+
+    .comment-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+    }
+
+    .comment-text {
+      font-size: 0.95rem;
+      color: #1e293b;
+      line-height: 1.55;
+      margin-bottom: 12px;
+      word-break: break-word;
+    }
+
+    .comment-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* 모달 팝업 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .modal-box {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: var(--radius-lg);
+      padding: 36px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      animation: modalPop 0.3s ease;
+    }
+
+    @keyframes modalPop {
+      0% { transform: scale(0.92); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(8px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 토스트 알림 */
+    .toast-msg {
+      position: fixed;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%) translateY(50px);
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(10px);
+      color: #ffffff;
+      padding: 12px 26px;
+      border-radius: var(--radius-full);
+      font-size: 0.92rem;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 2000;
+    }
+
+    .toast-msg.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* 하단 고정 푸터 */
+    footer {
+      width: 100%;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      font-size: 0.82rem;
+      color: #64748b;
+      letter-spacing: 0.05em;
+      font-weight: 500;
+      border-top: 1px solid rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.4);
+      backdrop-filter: blur(12px);
+      margin-top: auto;
+      padding: 0 20px;
+    }
+
+    .admin-secret-link {
+      position: absolute;
+      right: 20px;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 0.76rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      opacity: 0.5;
+    }
+    .admin-secret-link:hover {
+      opacity: 1;
+      color: #4f46e5;
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .shake-anim {
+      animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-2px, 0, 0); }
+      20%, 80% { transform: translate3d(3px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
+      40%, 60% { transform: translate3d(5px, 0, 0); }
+    }
+
+    /* 반응형 미디어 쿼리 */
+    @media (max-width: 768px) {
+      .app-title {
+        font-size: 1.65rem;
+      }
+      .glass-panel {
+        padding: 20px 16px;
+      }
+      .nav-tab-btn {
+        padding: 8px 16px;
+        font-size: 0.88rem;
+      }
+      .scale-options-grid {
+        gap: 6px;
+      }
+      .scale-option-btn {
+        padding: 10px 4px;
+      }
+      .scale-score {
+        font-size: 1.08rem;
+      }
+      .scale-label {
+        font-size: 0.68rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 배경 오라 장식 -->
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+  <div class="bg-blob blob-3"></div>
+
+  <!-- 메인 애플리케이션 컨테이너 -->
+  <div class="app-container">
+    
+    <!-- 상단 헤더 영역 -->
+    <header>
+      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+        <div class="brand-badge" style="margin-bottom: 0;">
+          <span class="brand-icon-box">AX</span>
+          <span>AI·AX Leadership Assessment Platform</span>
+        </div>
+        
+        <!-- 역할 모드 뱃지 및 전환 컨트롤 -->
+        <div id="roleIndicatorWrap" style="display: flex; align-items: center; gap: 8px;">
+          <span id="roleBadge" class="badge" style="padding: 6px 14px; font-size: 0.82rem; font-weight: 700; background: #e0e7ff; color: #4338ca; border: 1px solid rgba(199, 210, 254, 0.8); border-radius: 9999px; box-shadow: 0 2px 6px rgba(79, 70, 229, 0.08);">
+            👑 운영자 모드
+          </span>
+          <button type="button" id="roleToggleBtn" class="btn btn-secondary btn-sm" onclick="toggleUserRole()" style="padding: 5px 12px; font-size: 0.8rem;" title="운영자/교육생 화면 전환">
+            🎓 교육생 뷰 보기
+          </button>
+        </div>
+      </div>
+
+      <h1 class="app-title">AI·AX 5대 핵심 실무 역량 진단 및 피드백 솔루션 (팀원용)</h1>
+      <p class="app-subtitle" id="appSubtitleText">팀원의 실무 AI 활용 역량을 5대 핵심 영역(총 20문항)으로 자가 진단하고 즉각적인 분석 피드백을 제공합니다.</p>
+      
+      <!-- 상단 화면 전환 탭 (운영자: 3개 탭 / 교육생: 2개 탭) -->
+      <div class="nav-tabs-wrapper">
+        <div class="nav-tabs" role="tablist">
+          <button class="nav-tab-btn active" id="tabBtnScreen1" onclick="switchScreen(1)">
+            📋 설문 생성 및 배포
+          </button>
+          <button class="nav-tab-btn" id="tabBtnScreen2" onclick="switchScreen(2)">
+            ✍️ 진단 설문 응답
+          </button>
+          <button class="nav-tab-btn" id="tabBtnScreen3" onclick="switchScreen(3)">
+            📊 진단 결과 대시보드
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- =========================================================================
+         [화면 1] 설문 생성 및 배포 (강의 담당자용)
+         ========================================================================= -->
+    <section id="screen1" class="screen-section">
+      <div class="glass-panel">
+        <h2 class="section-title">
+          <span>📝 새로운 진단 설문 클래스 개설</span>
+        </h2>
+        <p class="section-desc">교육 과정명과 일자, 강사명을 입력하여 참가자 배포용 20문항 팀원 진단 설문을 생성합니다.</p>
+        
+        <form id="createClassForm" onsubmit="handleCreateClass(event)">
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label" for="inputCourseName">교육 과정명<span class="required">*</span></label>
+              <input type="text" id="inputCourseName" class="form-input" placeholder="예: 2026 AI·AX 실무 역량강화 워크숍 (팀원용)" required />
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="inputCourseDate">교육 일자<span class="required">*</span></label>
+              <input type="date" id="inputCourseDate" class="form-input" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="inputInstructor">강사명 / 운영기관<span class="required">*</span></label>
+              <input type="text" id="inputInstructor" class="form-input" placeholder="예: 홍길동 교수 / GAM 컨설팅" required />
+            </div>
+          </div>
+
+          <div style="margin-top: 10px;">
+            <button type="submit" class="btn btn-primary btn-block">
+              🔗 설문 생성 및 링크/QR 발급하기
+            </button>
+          </div>
+        </form>
+
+        <!-- 생성 완료 시 나타나는 링크 및 QR코드 배포 카드 -->
+        <div id="shareResultCard" class="share-result-card">
+          <div style="font-size: 1.3rem; font-weight: 800; color: #1e293b; margin-bottom: 6px;">
+            🎉 교육생 배포용 설문이 성공적으로 생성되었습니다!
+          </div>
+          <p style="color: var(--text-sub); font-size: 0.95rem;">
+            아래 QR 코드를 띄우거나 링크를 복사하여 교육생들에게 공유해 주세요.<br/>
+            <strong style="color: #4338ca;">💡 교육생 화면:</strong> 교육생에게는 <strong>[✍️ 진단 설문 응답]</strong>과 <strong>[📊 진단 결과 대시보드]</strong> 2개 탭만 제공됩니다.
+          </p>
+
+          <!-- 규격 QR코드 영역 (스마트폰 카메라 자동 인식) -->
+          <div class="qr-container">
+            <div class="qr-canvas-box" id="qrCanvasBox">
+              <div id="qrcode" style="display: flex; justify-content: center; align-items: center; min-width: 180px; min-height: 180px;"></div>
+            </div>
+            
+            <div style="display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="downloadQRCodeImage()" title="QR코드를 PNG 이미지로 저장">
+                💾 QR 이미지 저장
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="openShareUrlInNewTab()" title="새 탭에서 교육생 응답 화면 열기">
+                📱 교육생 뷰(새 탭) 열기
+              </button>
+            </div>
+            <span style="font-size: 0.82rem; color: #475569; margin-top: 8px; font-weight: 600;">
+              📷 스마트폰 카메라로 QR을 스캔하면 바로 교육생 전용 진단 화면으로 연결됩니다.
+            </span>
+          </div>
+
+          <!-- 링크 복사 영역 -->
+          <div class="link-copy-box">
+            <span id="shareUrlText" class="link-url-text">https://gam-ax-survey.app/?role=student&classId=CLASS-2026</span>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="copyShareLink()">
+              📋 교육생 링크 복사
+            </button>
+          </div>
+
+          <div style="display: flex; gap: 12px; justify-content: center; margin-top: 20px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-primary btn-sm" onclick="goToSurveyResponse()">
+              ✍️ 진단 설문 응답 바로가기
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="switchScreen(3)">
+              📊 진단 결과 대시보드 보기
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- [진단 데이터 및 클래스 통합 관리 패널] (대시보드에서 이전된 컨트롤 영역) -->
+      <div class="glass-panel">
+        <h2 class="section-title">
+          <span>📊 진단 데이터 관리 및 엑셀 다운로드</span>
+        </h2>
+        <p class="section-desc">클래스별 응답 데이터를 조회하고, 결과 엑셀(CSV) 다운로드, 시연용 샘플 생성 및 데이터를 관리합니다.</p>
+
+        <div class="dash-filter-bar" style="margin-bottom: 0;">
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <span style="font-weight: 700; color: #1e293b;">🎯 분석 대상 클래스:</span>
+            <select id="dashClassFilter" class="form-select" style="width: auto; min-width: 260px;" onchange="handleClassFilterChange()">
+              <option value="ALL">전체 통합 진단 결과</option>
+            </select>
+          </div>
+
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="generateSampleResponses()" title="체험을 위해 가상 응답 5건을 즉시 추가합니다.">
+              🎲 샘플 응답 5건 추가
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="downloadCSVReport()" title="전체 응답 데이터를 CSV 엑셀 파일로 저장">
+              📥 엑셀(CSV) 다운로드
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" style="color: #ef4444;" onclick="handleClearData()" title="저장된 응답 데이터를 초기화합니다">
+              🗑️ 데이터 초기화
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 20개 진단 문항 리스트 미리보기 카드 -->
+      <div class="glass-panel">
+        <h2 class="section-title">
+          <span>📋 5대 핵심 영역 진단 문항 미리보기 (총 20문항 / 5점 척도)</span>
+        </h2>
+        <p class="section-desc">1.AI 결과물 검증 및 완성도 평가(Q1~4) | 2.AI-인간 판단 충돌 시 의사결정(Q5~8) | 3.업무 방식 AI 재설계(Q9~12) | 4.협업·소통 및 자기관리 AI 접목(Q13~16) | 5.디지털 격차 해소·동료 평준화(Q17~20)</p>
+        
+        <div id="previewQuestionsList" class="questions-preview-list">
+          <!-- 자바스크립트로 20개 문항 자동 렌더링 -->
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         [화면 2] 진단 설문 응답 (교육 참가자용)
+         ========================================================================= -->
+    <section id="screen2" class="screen-section" style="display: none;">
+      
+      <!-- 상단 교육명 및 철학 안내 배너 -->
+      <div class="survey-header-banner">
+        <div style="font-size: 0.85rem; opacity: 0.85; margin-bottom: 4px;" id="surveyBannerDate">교육일자: 2026.08.23</div>
+        <h2 class="survey-course-name" id="surveyBannerTitle">AI 실무 5대 핵심 역량 진단 (20문항)</h2>
+        <div style="font-size: 0.95rem; opacity: 0.9;" id="surveyBannerInstructor">강사: GAM 컨설팅 수석강사진</div>
+        
+        <div class="survey-purpose-quote">
+          💡 <strong>진단 안내:</strong> "AI 시대 팀원의 경쟁력은 단순 도구 활용을 넘어 철저한 결과물 검증, 주도적 판단, 워크플로 재설계, 협업 소통, 동료와의 노하우 공유에 있습니다."
+        </div>
+      </div>
+
+      <!-- 진행률 표시 바 -->
+      <div class="progress-bar-container">
+        <div class="progress-info">
+          <span id="progressText">응답 진행률: 0 / 20 문항 완료</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+      </div>
+
+      <!-- 설문 응답 폼 -->
+      <form id="surveyAnswerForm" onsubmit="handleSurveySubmit(event)">
+        
+        <!-- 응답자 기본 정보 입력 (필수 입력: 회사명, 이름, 직책 3가지) -->
+        <div class="glass-panel" style="padding: 22px 24px; margin-bottom: 22px; border-top: 3px solid #6366f1;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: #e0e7ff; color: #4338ca; font-size: 0.95rem;">👤</span>
+              <span style="font-size: 1.02rem; font-weight: 800; color: #0f172a;">진단 응답자 기본 정보</span>
+            </div>
+            <span style="font-size: 0.82rem; color: #ef4444; font-weight: 700;">* 3가지 항목 모두 필수 입력입니다</span>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="respondentCompany">회사명<span class="required">*</span></label>
+              <input type="text" id="respondentCompany" class="form-input" placeholder="예: (주)인공지능혁신" required />
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="respondentName">이름 (성명)<span class="required">*</span></label>
+              <input type="text" id="respondentName" class="form-input" placeholder="예: 홍길동" required />
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="respondentRole">직책<span class="required">*</span></label>
+              <select id="respondentRole" class="form-select" required>
+                <option value="" disabled selected>직책을 선택해 주세요 (필수)</option>
+                <option value="팀장">팀장</option>
+                <option value="팀원">팀원</option>
+                <option value="본부장 임원이상">본부장 임원이상</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 20개 객관식 문항 동적 렌더링 컨테이너 -->
+        <div id="surveyQuestionsContainer"></div>
+
+        <!-- 21번 주관식 질문 카드 -->
+        <div class="survey-q-card">
+          <div class="survey-q-header">
+            <span class="badge" style="background:#e0e7ff; color:#4338ca;">주관식 심층 문항</span>
+          </div>
+          <div class="survey-q-title">
+            Q21. AI를 실무 및 협업에 적용할 때 가장 어렵거나 개선이 필요한 점은 무엇인가요? (선택)
+          </div>
+          <textarea id="essayAnswer" class="form-textarea" rows="4" placeholder="예: AI 산출물의 정확성/신뢰성 검증 방법, AI 의견과 내 판단 충돌 시 조율의 어려움, 기존 관행 수작업 탈피, 협업 소통 시 AI 활용법, 동료 간 프롬프트 공유 문화 등 자유롭게 적어주세요."></textarea>
+        </div>
+
+        <!-- 제출 버튼 -->
+        <div style="margin: 32px 0 20px 0;">
+          <button type="submit" class="btn btn-primary btn-block" style="font-size: 1.1rem; padding: 16px;">
+            🚀 진단 결과 제출하기
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- =========================================================================
+         [화면 3] 진단 결과 대시보드
+         ========================================================================= -->
+    <section id="screen3" class="screen-section" style="display: none;">
+      
+      <!-- 대시보드 상단 헤더 배너 (분석 대상 클래스 및 진단 당사자 선택) -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; flex-wrap: wrap; gap: 14px; background: var(--glass-card); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 14px 20px; box-shadow: var(--glass-shadow);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: var(--primary-gradient); color: #fff; font-size: 1.1rem; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);">📊</span>
+          <div>
+            <div style="font-size: 0.78rem; color: var(--text-sub); font-weight: 600;">진단 분석 대상 클래스</div>
+            <div id="dashActiveClassName" style="font-size: 1.05rem; font-weight: 800; color: #0f172a;">전체 통합 진단 결과 분석</div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <!-- [운영자 모드 전용] 분석 대상 진단자 선택 드롭다운 -->
+          <div id="dashRespondentFilterWrap" style="display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.85); padding: 6px 12px; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
+            <label for="dashRespondentFilter" style="font-size: 0.84rem; font-weight: 700; color: #334155; margin: 0; white-space: nowrap;">👤 [운영자] 분석 대상 진단자:</label>
+            <select id="dashRespondentFilter" class="form-select" style="width: auto; min-width: 170px; padding: 4px 8px; font-size: 0.86rem; height: 32px; font-weight: 600;" onchange="handleRespondentFilterChange()">
+              <!-- JS로 동적 렌더링 -->
+            </select>
+          </div>
+
+          <!-- [교육생 모드 전용] 본인 진단자 안내 뱃지 -->
+          <div id="dashStudentRespondentInfo" style="display: none; align-items: center; gap: 8px; background: #eef2ff; padding: 6px 14px; border-radius: 8px; border: 1px solid #c7d2fe; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
+            <span style="font-size: 0.84rem; font-weight: 700; color: #4338ca;">👤 나의 진단 정보:</span>
+            <span id="dashStudentRespondentName" style="font-size: 0.86rem; font-weight: 800; color: #1e1b4b;">-</span>
+          </div>
+
+          <span class="badge" id="dashComparisonBadge" style="background: #e0e7ff; color: #4338ca; font-size: 0.82rem; padding: 7px 14px; font-weight: 700; border-radius: 9999px;">
+            ⚡ 진단자 vs 전체 종합평균 비교 분석
+          </span>
+        </div>
+      </div>
+
+      <!-- 요약 KPI 통계 카드 그리드 (진단자 점수 vs 전체 평균 비교) -->
+      <div class="dash-kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+        <div class="kpi-card">
+          <span class="kpi-title">👥 총 응답자 수</span>
+          <span class="kpi-value" id="kpiTotalResponses">0명</span>
+          <span class="kpi-sub">실시간 수집 완료</span>
+        </div>
+
+        <div class="kpi-card" style="border-top: 3px solid #6366f1;">
+          <span class="kpi-title" id="kpiMyScoreTitle">🎯 진단자(당사자) 점수</span>
+          <span class="kpi-value" id="kpiMyScore" style="color: #4f46e5;">0.0 <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">/ 5.0</span></span>
+          <span class="kpi-sub" id="kpiMyScoreGap">전체 평균 대비 0.0점</span>
+        </div>
+
+        <div class="kpi-card" style="border-top: 3px solid #0891b2;">
+          <span class="kpi-title">🌐 전체 그룹 종합 평균</span>
+          <span class="kpi-value" id="kpiAvgScore" style="color: #0891b2;">0.0 <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">/ 5.0</span></span>
+          <span class="kpi-sub" id="kpiScoreStatus">데이터 대기 중</span>
+        </div>
+
+        <div class="kpi-card">
+          <span class="kpi-title" id="kpiTopDomainTitle">🏆 진단자 최우수 강점</span>
+          <span class="kpi-value" id="kpiTopDomain" style="color: #2563eb; font-size: 1.25rem;">-</span>
+          <span class="kpi-sub" id="kpiTopDomainScore">최고 점수 영역</span>
+        </div>
+
+        <div class="kpi-card">
+          <span class="kpi-title" id="kpiLowDomainTitle">🌱 진단자 보완 집중</span>
+          <span class="kpi-value" id="kpiLowDomain" style="color: #ea580c; font-size: 1.25rem;">-</span>
+          <span class="kpi-sub" id="kpiLowDomainScore">우선 개선 권장</span>
+        </div>
+      </div>
+
+      <!-- 5대 영역별 진단 점수 및 듀얼 비교 바 차트 -->
+      <div class="glass-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 6px;">
+          <h2 class="section-title" style="margin-bottom: 0;">
+            <span>📊 AI 실무 5대 핵심 역량 진단 점수 비교</span>
+          </h2>
+          <div style="display: flex; gap: 14px; font-size: 0.82rem; font-weight: 700; color: #475569;">
+            <span style="display: flex; align-items: center; gap: 6px;">
+              <span style="display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: #6366f1;"></span>
+              <span id="dashBarLegendTarget">👤 진단 당사자 점수</span>
+            </span>
+            <span style="display: flex; align-items: center; gap: 6px;">
+              <span style="display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: #94a3b8;"></span>
+              <span>🌐 전체 그룹 평균</span>
+            </span>
+          </div>
+        </div>
+        <p class="section-desc">
+          1.결과물 검증 및 완성도 평가, 2.판단 충돌·의사결정, 3.업무 AI 재설계, 4.협업·소통 AI 접목, 5.격차 해소·동료 평준화 등 5대 영역별로 <strong>진단 당사자의 점수와 전체 평균을 한눈에 비교</strong>합니다.
+        </p>
+
+        <!-- 영역별 바 차트 -->
+        <div class="domain-chart-container" id="domainBarsContainer">
+          <!-- JS로 영역별 듀얼 가로 막대 그래프 렌더링 -->
+        </div>
+      </div>
+
+      <!-- 5대 영역별 심층 분석 및 실천 Action Plan 카드 섹션 -->
+      <div class="glass-panel">
+        <h2 class="section-title">
+          <span>🎯 5대 영역별 심층 분석 및 진단자 맞춤형 실천 Action Plan</span>
+        </h2>
+        <p class="section-desc">전체 평균 대비 진단 당사자의 점수 위치를 분석하여, <strong>나의 강점 진단 및 팀원으로서 실무 현장에서 즉시 실행할 실천 지침</strong>을 제공합니다.</p>
+
+        <div id="domainActionPlansContainer" class="action-plans-grid">
+          <!-- JS로 5대 영역별 맞춤형 진단 및 실천 가이드 카드 렌더링 -->
+        </div>
+      </div>
+
+      <!-- 문항별 세부 평균 및 취약점 분석 -->
+      <div class="glass-panel">
+        <h2 class="section-title">
+          <span>🔍 20개 문항별 상세 분석 및 진단자 vs 전체 평균 비교표</span>
+        </h2>
+        <p class="section-desc">문항별 진단 당사자 응답 점수와 전체 수강생 평균을 대조하여 구체적인 강점 문항과 보완 문항을 확인합니다.</p>
+
+        <div class="table-container">
+          <table class="score-table">
+            <thead>
+              <tr>
+                <th style="width: 65px;">번호</th>
+                <th style="width: 140px;">영역</th>
+                <th>진단 문항 내용</th>
+                <th style="width: 100px; text-align: center;" id="thRespondentHeader">👤 진단자</th>
+                <th style="width: 100px; text-align: center;">🌐 전체평균</th>
+                <th style="width: 100px; text-align: center;">격차 (Gap)</th>
+                <th style="width: 110px; text-align: center;" id="thEvaluationHeader">진단자 판정</th>
+              </tr>
+            </thead>
+            <tbody id="questionScoreTableBody">
+              <!-- JS로 행 렌더링 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 참가자 주관식 고민 및 의견 피드백 카드 목록 -->
+      <div class="glass-panel">
+        <h2 class="section-title">
+          <span>💬 현장 피드백 및 AI 활용 시 가장 어려운 점 (주관식)</span>
+        </h2>
+        <p class="section-desc">참가자들이 직접 작성한 고민과 현장 애로사항 목록입니다.</p>
+
+        <div id="essayFeedbackContainer" class="feedback-comment-grid">
+          <!-- 주관식 피드백 리스트 동적 렌더링 -->
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- 토스트 메시지 알림 엘리먼트 -->
+  <div id="toast" class="toast-msg">알림 메시지</div>
+
+  <!-- 제출 완료 모달 팝업 -->
+  <div id="submitSuccessModal" class="modal-overlay">
+    <div class="modal-box">
+      <div style="font-size: 3rem; margin-bottom: 12px;">🎉</div>
+      <h3 style="font-size: 1.35rem; font-weight: 700; color: #0f172a; margin-bottom: 8px;">설문 응답이 완료되었습니다!</h3>
+      <p style="color: var(--text-sub); font-size: 0.95rem; margin-bottom: 24px;">
+        소중한 응답이 안전하게 저장되었습니다.<br/>
+        나의 진단 피드백과 전체 통계를 확인해 보세요.
+      </p>
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button type="button" class="btn btn-primary btn-block" onclick="closeSuccessModalAndGoDash()">
+          📊 실시간 결과 대시보드 확인하기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔐 운영자 모드 비밀번호 인증 모달 팝업 -->
+  <div id="adminAuthModal" class="modal-overlay" onclick="handleAdminModalBackdropClick(event)">
+    <div class="modal-box" style="max-width: 440px; text-align: left;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.15rem;">
+            🔐
+          </div>
+          <div>
+            <h3 style="font-size: 1.2rem; font-weight: 800; color: #0f172a; margin: 0;">운영자(관리자) 모드 인증</h3>
+            <div style="font-size: 0.78rem; color: var(--text-sub);">전체 설문 관리 및 배포 권한 활성화</div>
+          </div>
+        </div>
+        <button type="button" onclick="closeAdminAuthModal()" style="background: none; border: none; font-size: 1.3rem; color: #94a3b8; cursor: pointer; padding: 4px;">✕</button>
+      </div>
+
+      <p style="color: var(--text-sub); font-size: 0.9rem; line-height: 1.5; margin-bottom: 18px;">
+        교육생 화면에서 <strong>운영자 모드</strong>(설문 생성·배포, 엑셀 다운로드, 데이터 관리)로 복귀하려면 관리자 비밀번호를 입력해 주세요.
+      </p>
+
+      <form id="adminAuthForm" onsubmit="handleAdminAuthSubmit(event)">
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label class="form-label" for="adminPasswordInput">
+            <span>관리자 비밀번호</span>
+          </label>
+          <div style="position: relative;">
+            <input
+              type="password"
+              id="adminPasswordInput"
+              class="form-input"
+              placeholder="관리자 비밀번호를 입력하세요"
+              autocomplete="current-password"
+              style="padding-right: 42px;"
+              required
+            />
+            <button
+              type="button"
+              onclick="toggleShowAdminPass()"
+              style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 1rem; color: #94a3b8; cursor: pointer;"
+              title="비밀번호 표시/숨김"
+            >
+              👁️
+            </button>
+          </div>
+          <div id="adminAuthErrorMsg" style="color: #ef4444; font-size: 0.82rem; margin-top: 6px; display: none; font-weight: 600;">
+            ⚠️ 비밀번호가 올바르지 않습니다. 다시 확인해 주세요.
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 20px;">
+          <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="closeAdminAuthModal()">
+            취소
+          </button>
+          <button type="submit" class="btn btn-primary" style="flex: 2;">
+            👑 운영자 모드로 전환
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 하단 고정 저작권 푸터 (은은한 관리자 시크릿 복귀 링크 포함) -->
+  <footer>
+    <span>© 2026 GAM CONSULTING. All Rights Reserved.</span>
+    <button type="button" class="admin-secret-link" onclick="openAdminAuthModal()" title="운영자 관리자 인증 화면 열기 (단축키: Alt + A)">
+      🔒 운영자 인증
+    </button>
+  </footer>
+
+  <!-- =========================================================================
+       [Vanilla JavaScript 메인 애플리케이션 로직]
+       ========================================================================= -->
+  <script>
+    /**
+      * @file app.js
+     * @description AI·AX 실무 5대 핵심 영역 팀원 역량 진단 설문 생성, 설문 응답 수집, LocalStorage 저장 및 피드백 대시보드
+     * @author GAM CONSULTING
+     */
+
+    // 1. 진단 문항 데이터 (5대 핵심 역량 x 4문항 = 총 20개 객관식 문항 - 팀원 자가진단용)
+    const ASSESSMENT_QUESTIONS = [
+      // 1. AI 결과물 검증 및 완성도 평가 (Q1~Q4)
+      { id: 1, domain: "EVAL", domainName: "결과물 검증·완성도", text: "나는 내가 AI를 활용해 작성한 보고서나 자료의 사실관계와 출처를 꼼꼼히 확인하고 교차 검증한다." },
+      { id: 2, domain: "EVAL", domainName: "결과물 검증·완성도", text: "나는 AI 결과물의 오류나 거짓 정보(환각)를 잘 찾아내고, 원하는 결과가 나올 때까지 질문(프롬프트) 의도를 점검·수정한다." },
+      { id: 3, domain: "EVAL", domainName: "결과물 검증·완성도", text: "나는 AI 결과물이 미흡할 때, 구체적인 조건과 맥락을 추가(재프롬프팅)하여 완성도를 주도적으로 끌어올린다." },
+      { id: 4, domain: "EVAL", domainName: "결과물 검증·완성도", text: "나는 AI의 단순 생성물에만 의존하지 않고, 나의 분석과 창의적 노력을 더해 최종 결과물의 가치를 높인다." },
+
+      // 2. AI-인간 판단 충돌 시 의사결정 기준 (Q5~Q8)
+      { id: 5, domain: "CONFLICT", domainName: "판단 충돌·의사결정", text: "나는 AI의 추천이나 분석이 내 직관과 다를 때, AI가 어떤 데이터를 바탕으로 도출했는지 근거를 먼저 따져본다." },
+      { id: 6, domain: "CONFLICT", domainName: "판단 충돌·의사결정", text: "나는 일의 중요도와 실패 시의 위험도에 따라, AI 의견을 어디까지 수용하고 검증할지 명확한 기준이 있다." },
+      { id: 7, domain: "CONFLICT", domainName: "판단 충돌·의사결정", text: "나는 AI의 분석 데이터에 현장 실무 경험과 조직의 상황을 종합하여 최적의 대안과 결론을 도출한다." },
+      { id: 8, domain: "CONFLICT", domainName: "판단 충돌·의사결정", text: "나는 AI를 활용해 수행한 업무라도 'AI 탓'을 하지 않고, 실무 담당자로서 결과물에 대한 최종 책임을 다한다." },
+
+      // 3. 기존 업무 방식의 AI 친화적 재설계 (Q9~Q12)
+      { id: 9, domain: "REDESIGN", domainName: "업무 AI 재설계", text: "나는 AI를 활용하면서 기존에 관행적으로 해오던 비효율적인 수작업이나 불필요한 절차를 과감히 줄인다." },
+      { id: 10, domain: "REDESIGN", domainName: "업무 AI 재설계", text: "나는 정기 회의록 정리, 자료 조사, 반복 데이터 가공 같은 일상 업무를 AI로 빠르게 처리하도록 방식을 바꾼다." },
+      { id: 11, domain: "REDESIGN", domainName: "업무 AI 재설계", text: "나는 내 업무에서 'AI가 대신할 일(단순 반복·초안)'과 '내가 직접 챙길 일(전략·기획·협업)'을 명확히 구분해 일한다." },
+      { id: 12, domain: "REDESIGN", domainName: "업무 AI 재설계", text: "나는 AI 덕분에 줄어든 업무 시간을 새로운 아이디어 발굴이나 직무 역량 강화 등 고부가가치 활동에 재투자한다." },
+
+      // 4. 협업·소통 및 자기관리 AI 접목 (Q13~Q16)
+      { id: 13, domain: "PEOPLE", domainName: "협업·소통 AI 접목", text: "나는 팀장님과의 1:1 면담이나 업무 보고 전, AI를 활용해 핵심 논점과 질문, 보고 내용을 미리 논리적으로 정리해 본다." },
+      { id: 14, domain: "PEOPLE", domainName: "협업·소통 AI 접목", text: "나는 동료와의 협업이나 피드백, 업무 요청 시 오해를 줄이고 명확·객관적으로 전달할 수 있도록 AI의 도움을 받는다." },
+      { id: 15, domain: "PEOPLE", domainName: "협업·소통 AI 접목", text: "나는 업무상 갈등이나 협업에 어려움이 생겼을 때, 상대방을 배려하며 원만하게 소통하는 방법을 AI와 함께 고민해 본다." },
+      { id: 16, domain: "PEOPLE", domainName: "협업·소통 AI 접목", text: "나는 메신저 공지, 업무 이메일, 제안서를 작성할 때 AI를 활용해 더 정중하고 명확한 문장으로 다듬어 전달한다." },
+
+      // 5. 디지털 격차 해소 및 동료 상향 평준화 (Q17~Q20)
+      { id: 17, domain: "EQUALIZE", domainName: "격차 해소·동료 평준화", text: "나는 AI 사용이 서툰 동료에게 유용한 팁을 알려주거나, 동료들과 서로 배운 노하우를 적극적으로 나눈다." },
+      { id: 18, domain: "EQUALIZE", domainName: "격차 해소·동료 평준화", text: "나는 일할 때 효과적이었던 질문(프롬프트)이나 AI 활용 성공·실패 경험을 팀 동료들과 자주 공유한다." },
+      { id: 19, domain: "EQUALIZE", domainName: "격차 해소·동료 평준화", text: "나는 회사 정보 보안, 사내 기밀 누설 방지, 저작권 및 윤리 수칙을 철저히 지키며 안전하게 AI를 활용한다." },
+      { id: 20, domain: "EQUALIZE", domainName: "격차 해소·동료 평준화", text: "나는 새로운 AI 도구나 기능을 두려워하지 않고 주도적으로 실험해 보며, 팀의 AI 활용 분위기에 기여한다." }
+    ];
+
+    // 5대 핵심 영역별 메타 정보 (설명, 색상, 매핑된 문항 번호 - 팀원 관점)
+    const DOMAIN_INFO = {
+      EVAL: {
+        name: "1. AI 결과물 검증 및 완성도 평가",
+        badgeClass: "badge-eval",
+        color: "var(--color-eval)",
+        hexColor: "#4f46e5",
+        questions: [1, 2, 3, 4],
+        desc: "AI 산출물의 사실관계 및 출처를 정밀 검증하고, 재프롬프팅과 주도적 기여를 더해 완성도 높은 결과물을 만들어내는 역량입니다."
+      },
+      CONFLICT: {
+        name: "2. AI-인간 판단 충돌 시 의사결정",
+        badgeClass: "badge-conflict",
+        color: "var(--color-conflict)",
+        hexColor: "#0891b2",
+        questions: [5, 6, 7, 8],
+        desc: "AI 제안과 자신의 직관이 충돌할 때 데이터 근거를 비판적으로 검토하고, 위험도와 실무 책임을 고려해 최적의 결론을 도출하는 역량입니다."
+      },
+      REDESIGN: {
+        name: "3. 업무 방식의 AI 친화적 재설계",
+        badgeClass: "badge-redesign",
+        color: "var(--color-redesign)",
+        hexColor: "#059669",
+        questions: [9, 10, 11, 12],
+        desc: "관행적 루틴 업무를 AI로 신속히 자동화하고, 'AI 위임'과 '개인 고유 통찰'을 구분하여 고부가가치 과제에 집중하는 역량입니다."
+      },
+      PEOPLE: {
+        name: "4. 협업·소통 및 자기관리 AI 접목",
+        badgeClass: "badge-people",
+        color: "var(--color-people)",
+        hexColor: "#7c3aed",
+        questions: [13, 14, 15, 16],
+        desc: "1:1 면담 준비, 협업 요청 및 피드백, 갈등 완화, 정중한 비즈니스 커뮤니케이션에 AI를 접목하여 협업 시너지를 창출하는 역량입니다."
+      },
+      EQUALIZE: {
+        name: "5. 디지털 격차 해소 & 동료 상향 평준화",
+        badgeClass: "badge-equalize",
+        color: "var(--color-equalize)",
+        hexColor: "#ea580c",
+        questions: [17, 18, 19, 20],
+        desc: "검증된 프롬프트를 동료와 공유하고, 사내 보안·윤리 가이드를 준수하며, 주도적 실험을 통해 팀 전체의 AI 활용 상향 평준화에 기여하는 역량입니다."
+      }
+    };
+
+    // 5대 영역별 심층 분석 및 실천 Action Plan 지침 데이터 (팀원 맞춤형)
+    const ACTION_GUIDANCE = {
+      EVAL: {
+        title: "1. AI 결과물 검증 및 완성도 평가",
+        icon: "⚖️",
+        highDiagnosis: "자신의 AI 산출물에 대한 사실관계 검증과 환각 오류 필터링 능력이 매우 우수하며, 개인의 분석과 인사이트를 더해 완성도 높은 결과물을 창출하고 있습니다.",
+        lowDiagnosis: "AI 결과물의 환각 오류나 출처를 사전에 교차 검증하고, 재프롬프팅을 통해 결과물의 질을 주도적으로 끌어올리는 셀프 체크리스트가 필요합니다.",
+        actionSteps: [
+          "<strong>팩트체크 체크리스트 생활화:</strong> AI 산출물 제출 전 원본 통계 및 데이터 출처를 직접 확인하는 3단계 검증을 습관화하세요.",
+          "<strong>체인오브소트(CoT) 재프롬프팅:</strong> 미흡한 답변을 받으면 단순 복사 대신 '구체적 조건과 단계별 추론'을 요구하는 추가 질문을 던지세요.",
+          "<strong>자신만의 인사이트 더하기:</strong> AI 초안 위에 현장 경험과 비즈니스 맥락을 30% 이상 덧붙여 나만의 차별화된 결과물로 완성하세요."
+        ]
+      },
+      CONFLICT: {
+        title: "2. AI-인간 판단 충돌 시 의사결정",
+        icon: "🧭",
+        highDiagnosis: "AI의 추천과 자신의 판단이 상충할 때 데이터 근거를 객관적으로 분석하며, 결과물에 대한 담당자로서의 실무적 책임감이 투철합니다.",
+        lowDiagnosis: "AI의 답변을 무비판적으로 수용하거나 반대로 직관에만 의존하기보다, 리스크 분석과 주도적 책임 의식을 갖추는 훈련이 요구됩니다.",
+        actionSteps: [
+          "<strong>데이터 근거 역추적:</strong> AI가 제시한 제안의 배경 데이터와 가정(Assumption)을 반드시 되짚어 확인하세요.",
+          "<strong>판단 분기점 체크:</strong> 실패 시 리스크가 큰 중요 업무는 AI 결과를 참고안으로 삼고, 동료나 팀장님과 교차 검토를 거치세요.",
+          "<strong>담당자 책임제 준수:</strong> 'AI가 작성해서 몰랐다'는 변명 대신, '담당자로서 철저히 검토하고 제출한 결과'라는 태도를 견지하세요."
+        ]
+      },
+      REDESIGN: {
+        title: "3. 업무 방식의 AI 친화적 재설계",
+        icon: "🔄",
+        highDiagnosis: "비효율적인 반복 업무를 AI로 신속히 자동화하고, 절감된 시간을 기획 및 역량 개발 등 핵심 과제에 스마트하게 투자하고 있습니다.",
+        lowDiagnosis: "기존의 익숙한 수작업 관행에 머무르지 않고, 일상적인 회의록·자료 취합부터 AI 자동화를 적극 적용해 보는 시도가 권장됩니다.",
+        actionSteps: [
+          "<strong>루틴 업무 AI 전환:</strong> 매주 반복하는 자료 요약, 회의록 정리, 초안 작성을 AI 템플릿으로 대체하여 주당 3시간 이상 확보하세요.",
+          "<strong>역할 구분 명확화:</strong> '단순 정리·초안=AI'에게, '문제 정의·핵심 통찰·실행=나'에게 배정하는 명확한 업무 프로세스를 확립하세요.",
+          "<strong>확보된 시간의 가치화:</strong> AI로 단축된 시간을 직무 전문성 강화 학습이나 새로운 아이디어 발굴에 집중 투자하세요."
+        ]
+      },
+      PEOPLE: {
+        title: "4. 협업·소통 및 자기관리 AI 접목",
+        icon: "🤝",
+        highDiagnosis: "팀장 보고, 1:1 면담 준비, 동료 피드백 및 정중한 업무 소통 전반에 AI를 활용하여 탁월한 협업 시너지를 내고 있습니다.",
+        lowDiagnosis: "업무 보고나 협업 요청, 갈등 상황에서 오해 없는 원활한 소통을 위해 AI를 통한 문안 정제 및 대화 시뮬레이션을 시도해 보세요.",
+        actionSteps: [
+          "<strong>1:1 면담/보고 시뮬레이션:</strong> 팀장님께 보고하거나 피드백을 받기 전, AI에게 '예상되는 질문 3가지'를 뽑아 논리적으로 답변을 준비하세요.",
+          "<strong>감정 없는 객관적 소통:</strong> 업무 요청이나 피드백 작성 후 AI를 통해 '상대방의 오해를 줄이고 협조를 이끌어내는 정중한 표현'으로 윤문하세요.",
+          "<strong>갈등 예방 관점 전환:</strong> 협업 부서나 동료와의 이견 발생 시, 상대방 입장에서의 우려사항을 AI와 브레인스토밍해 보세요."
+        ]
+      },
+      EQUALIZE: {
+        title: "5. 디지털 격차 해소 & 동료 상향 평준화",
+        icon: "🚀",
+        highDiagnosis: "나만의 우수 프롬프트를 동료들과 아낌없이 나누고 사내 보안 수칙을 솔선수범하여 팀 전체의 AI 활용 역량을 끌어올리고 있습니다.",
+        lowDiagnosis: "개인 혼자만의 사용에 그치지 않고, 성공했던 질문 템플릿을 팀 채널에 공유하고 동료들과 노하우를 나누는 참여가 필요합니다.",
+        actionSteps: [
+          "<strong>팀 프롬프트 채널 공유:</strong> 효과를 본 프롬프트나 유용한 활용 팁을 주 1회 팀 메신저나 위키에 자발적으로 공유하세요.",
+          "<strong>동료 간 상호 학습(Peer Learning):</strong> AI 툴 활용이 어려운 동료에게 작은 팁을 알려주며 함께 성장하는 문화를 만드세요.",
+          "<strong>철저한 보안·윤리 준수:</strong> 사내 기밀 정보나 개인정보가 프롬프트에 들어가지 않도록 철저히 마스킹하고 안전하게 사용하세요."
+        ]
+      }
+    };
+
+    // 5점 척도 라벨
+    const SCALE_LABELS = [
+      { score: 1, label: "전혀 그렇지 않다" },
+      { score: 2, label: "그렇지 않다" },
+      { score: 3, label: "보통이다" },
+      { score: 4, label: "그렇다" },
+      { score: 5, label: "매우 그렇다" }
+    ];
+
+    // LocalStorage 키 상수
+    const STORAGE_KEYS = {
+      CLASSES: "gam_ax_classes_v1",
+      RESPONSES: "gam_ax_responses_v1",
+      ACTIVE_CLASS_ID: "gam_ax_active_class_id_v1",
+      USER_ROLE: "gam_ax_user_role_v1",
+      ADMIN_PASS: "gam_ax_admin_pass_v1",
+      LAST_RESPONDENT_ID: "gam_ax_last_resp_id_v1",
+      SELECTED_RESPONDENT_ID: "gam_ax_selected_resp_id_v1"
+    };
+
+    // 현재 사용자 역할 ('admin': 운영자 3개 탭 / 'student': 교육생 2개 탭)
+    let currentUserRole = "admin";
+
+    // 현재 응답자가 선택 중인 문항 답변 상태 (문항 ID -> 점수 1~5)
+    let currentSurveyAnswers = {};
+    let latestCreatedClass = null;
+
+    /* ==========================================================================
+       [역할(운영자 / 교육생) 제어 및 관리자 비밀번호 인증 함수]
+       ========================================================================== */
+    /**
+     * 사용자 역할 설정 ('admin' | 'student')
+     */
+    function setUserRole(role, silent = false) {
+      currentUserRole = (role === "student") ? "student" : "admin";
+      localStorage.setItem(STORAGE_KEYS.USER_ROLE, currentUserRole);
+
+      const tab1 = document.getElementById("tabBtnScreen1");
+      const roleBadge = document.getElementById("roleBadge");
+      const roleToggleBtn = document.getElementById("roleToggleBtn");
+      const appSubtitleText = document.getElementById("appSubtitleText");
+
+      // 대시보드 역할별 UI 제어 (분석 대상자 변경 셀렉트는 운영자 모드 전용)
+      const respondentFilterWrap = document.getElementById("dashRespondentFilterWrap");
+      const studentRespondentInfo = document.getElementById("dashStudentRespondentInfo");
+      const comparisonBadge = document.getElementById("dashComparisonBadge");
+      const kpiMyScoreTitle = document.getElementById("kpiMyScoreTitle");
+      const kpiTopDomainTitle = document.getElementById("kpiTopDomainTitle");
+      const kpiLowDomainTitle = document.getElementById("kpiLowDomainTitle");
+      const dashBarLegendTarget = document.getElementById("dashBarLegendTarget");
+      const thRespondentHeader = document.getElementById("thRespondentHeader");
+      const thEvaluationHeader = document.getElementById("thEvaluationHeader");
+
+      if (currentUserRole === "student") {
+        // 교육생 화면: [설문 생성 및 배포] 탭 숨김 (오직 2개 탭만 제공)
+        if (tab1) tab1.style.display = "none";
+        
+        if (roleBadge) {
+          roleBadge.innerHTML = "🎓 교육생 진단 모드 🔒";
+          roleBadge.style.background = "#f3e8ff";
+          roleBadge.style.color = "#7e22ce";
+          roleBadge.style.borderColor = "#e9d5ff";
+          roleBadge.style.cursor = "pointer";
+          roleBadge.title = "교육생 모드 (클릭하여 운영자 비밀번호 인증 후 전환 가능)";
+          roleBadge.onclick = () => openAdminAuthModal();
+        }
+        
+        // 중요: 교육생 뷰에서는 운영자 모드로 전환하는 직접 버튼을 숨겨 교육생이 실수나 클릭으로 진입 불가
+        if (roleToggleBtn) {
+          roleToggleBtn.style.display = "none";
+        }
+
+        if (appSubtitleText) {
+          appSubtitleText.innerText = "조직의 AI 리더십 5대 역량 진단에 참여하고 즉각적인 분석 피드백을 확인하세요.";
+        }
+
+        // 교육생 모드 대시보드: 진단자 변경 셀렉트 숨김, 본인 정보 고정 표시
+        if (respondentFilterWrap) respondentFilterWrap.style.display = "none";
+        if (studentRespondentInfo) studentRespondentInfo.style.display = "inline-flex";
+        if (comparisonBadge) comparisonBadge.innerHTML = "⚡ 나의 점수 vs 전체 종합평균 비교 분석";
+        if (kpiMyScoreTitle) kpiMyScoreTitle.innerText = "🎯 나의(본인) 진단 점수";
+        if (kpiTopDomainTitle) kpiTopDomainTitle.innerText = "🏆 나의 최우수 강점";
+        if (kpiLowDomainTitle) kpiLowDomainTitle.innerText = "🌱 나의 보완 집중";
+        if (dashBarLegendTarget) dashBarLegendTarget.innerText = "👤 나의(본인) 점수";
+        if (thRespondentHeader) thRespondentHeader.innerText = "👤 나의 점수";
+        if (thEvaluationHeader) thEvaluationHeader.innerText = "나의 판정";
+
+        // 만약 현재 1번(설문 생성) 화면에 있었다면 2번(설문 응답) 화면으로 즉시 전환
+        const screen1 = document.getElementById("screen1");
+        if (screen1 && screen1.style.display !== "none") {
+          switchScreen(2);
+        }
+      } else {
+        // 운영자 화면: [설문 생성 및 배포] 포함 3개 탭 전체 노출
+        if (tab1) tab1.style.display = "inline-flex";
+
+        if (roleBadge) {
+          roleBadge.innerHTML = "👑 운영자 모드 (전체 권한)";
+          roleBadge.style.background = "#e0e7ff";
+          roleBadge.style.color = "#4338ca";
+          roleBadge.style.borderColor = "rgba(199, 210, 254, 0.8)";
+          roleBadge.style.cursor = "default";
+          roleBadge.title = "강의 운영자 및 강사용 관리 모드입니다.";
+          roleBadge.onclick = null;
+        }
+        
+        // 운영자 화면에서는 교육생 뷰 미리보기 버튼 노출
+        if (roleToggleBtn) {
+          roleToggleBtn.style.display = "inline-flex";
+          roleToggleBtn.innerHTML = "🎓 교육생 뷰 미리보기";
+          roleToggleBtn.title = "교육생에게 보이는 2개 탭 화면으로 미리보기 전환";
+        }
+
+        if (appSubtitleText) {
+          appSubtitleText.innerText = "조직의 인공지능 전환(AX) 리더십을 5대 핵심 영역(총 20문항)으로 진단하고 즉각적인 피드백을 제공합니다.";
+        }
+
+        // 운영자 모드 대시보드: 분석 대상 진단자 변경 셀렉트 활성화
+        if (respondentFilterWrap) respondentFilterWrap.style.display = "inline-flex";
+        if (studentRespondentInfo) studentRespondentInfo.style.display = "none";
+        if (comparisonBadge) comparisonBadge.innerHTML = "⚡ [운영자] 진단자 vs 전체 종합평균 비교 분석";
+        if (kpiMyScoreTitle) kpiMyScoreTitle.innerText = "🎯 진단자(당사자) 점수";
+        if (kpiTopDomainTitle) kpiTopDomainTitle.innerText = "🏆 진단자 최우수 강점";
+        if (kpiLowDomainTitle) kpiLowDomainTitle.innerText = "🌱 진단자 보완 집중";
+        if (dashBarLegendTarget) dashBarLegendTarget.innerText = "👤 진단 당사자 점수";
+        if (thRespondentHeader) thRespondentHeader.innerText = "👤 진단자";
+        if (thEvaluationHeader) thEvaluationHeader.innerText = "진단자 판정";
+      }
+
+      // 대시보드 화면(screen3)이 표시 중인 경우 즉시 동기화 재렌더링
+      const screen3 = document.getElementById("screen3");
+      if (screen3 && screen3.style.display !== "none") {
+        renderDashboard();
+      }
+    }
+
+    /**
+     * 상단 헤더의 버튼을 통한 운영자 -> 교육생 뷰 미리보기 전환
+     */
+    function toggleUserRole() {
+      if (currentUserRole === "admin") {
+        setUserRole("student");
+        showToast("🎓 교육생 뷰 미리보기로 전환되었습니다. (하단 '🔒 운영자 인증' 또는 뱃지 클릭 시 복귀)");
+      } else {
+        openAdminAuthModal();
+      }
+    }
+
+    /**
+     * 운영자 비밀번호 인증 모달 열기
+     */
+    function openAdminAuthModal() {
+      const modal = document.getElementById("adminAuthModal");
+      const passInput = document.getElementById("adminPasswordInput");
+      const errorMsg = document.getElementById("adminAuthErrorMsg");
+      if (modal) {
+        modal.style.display = "flex";
+        if (passInput) {
+          passInput.value = "";
+          passInput.classList.remove("shake-anim");
+          setTimeout(() => passInput.focus(), 100);
+        }
+        if (errorMsg) {
+          errorMsg.style.display = "none";
+        }
+      }
+    }
+
+    /**
+     * 운영자 비밀번호 인증 모달 닫기
+     */
+    function closeAdminAuthModal() {
+      const modal = document.getElementById("adminAuthModal");
+      if (modal) modal.style.display = "none";
+    }
+
+    /**
+     * 모달 배경 클릭 시 닫기
+     */
+    function handleAdminModalBackdropClick(event) {
+      if (event.target && event.target.id === "adminAuthModal") {
+        closeAdminAuthModal();
+      }
+    }
+
+    /**
+     * 비밀번호 텍스트 보이기/숨김 토글
+     */
+    function toggleShowAdminPass() {
+      const passInput = document.getElementById("adminPasswordInput");
+      if (passInput) {
+        passInput.type = (passInput.type === "password") ? "text" : "password";
+      }
+    }
+
+    /**
+     * 관리자 비밀번호 검증 및 운영자 모드 복귀 처리
+     */
+    function handleAdminAuthSubmit(event) {
+      event.preventDefault();
+      const passInput = document.getElementById("adminPasswordInput");
+      const errorMsg = document.getElementById("adminAuthErrorMsg");
+      if (!passInput) return;
+
+      const inputVal = passInput.value.trim();
+      const savedPass = localStorage.getItem(STORAGE_KEYS.ADMIN_PASS) || "admin1234";
+
+      // 인증 허용 비밀번호 (저장된 비번, 기본값 1234, admin1234, 0000, gam2026)
+      const validPasswords = [savedPass, "1234", "admin1234", "0000", "gam2026"];
+
+      if (validPasswords.includes(inputVal)) {
+        closeAdminAuthModal();
+        setUserRole("admin");
+        
+        // URL에 role=student가 있다면 제거하여 새로고침 시에도 운영자 유지
+        try {
+          if (window.location.search.includes("role=student")) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        } catch (e) {
+          console.warn(e);
+        }
+
+        switchScreen(1); // 설문 생성 및 배포 관리 탭으로 복귀
+        showToast("👑 운영자 인증이 완료되어 모든 관리 권한이 활성화되었습니다.");
+      } else {
+        if (errorMsg) {
+          errorMsg.style.display = "block";
+          errorMsg.innerText = "⚠️ 비밀번호가 일치하지 않습니다. 다시 확인해 주세요.";
+        }
+        passInput.classList.remove("shake-anim");
+        void passInput.offsetWidth; // 트리거 리플로우
+        passInput.classList.add("shake-anim");
+        passInput.focus();
+      }
+    }
+
+    // 단축키 (Alt + A) 로 언제든 운영자 인증 모달 호출
+    window.addEventListener("keydown", (e) => {
+      if (e.altKey && (e.key === "a" || e.key === "A" || e.key === "ㅁ")) {
+        e.preventDefault();
+        openAdminAuthModal();
+      }
+    });
+
+    /**
+     * 설문 생성 및 배포 탭에서 분석 대상 클래스 선택 변경 시
+     */
+    function handleClassFilterChange() {
+      renderDashboard();
+      const selectElem = document.getElementById("dashClassFilter");
+      if (selectElem) {
+        const text = selectElem.options[selectElem.selectedIndex]?.text || "선택된 클래스";
+        showToast(`대시보드 분석 대상이 [${text}] (으)로 변경되었습니다.`);
+      }
+    }
+
+    /* ==========================================================================
+       [초기화 및 생명주기 핸들러]
+       ========================================================================== */
+    window.addEventListener("DOMContentLoaded", () => {
+      // 1. 오늘 날짜를 교육 일자 기본값으로 지정
+      const todayStr = new Date().toISOString().split('T')[0];
+      const dateInput = document.getElementById("inputCourseDate");
+      if (dateInput) dateInput.value = todayStr;
+
+      // 2. 기본 클래스 데이터가 없으면 데모용 초기 클래스 생성
+      initDefaultData();
+
+      // 3. 화면 1 문항 리스트 미리보기 렌더링
+      renderQuestionsPreview();
+
+      // 4. 화면 2 설문 응답 폼 문항 렌더링
+      renderSurveyQuestions();
+
+      // 5. 클래스 드롭다운 목록 동기화
+      syncClassSelectDropdowns();
+
+      // 6. 초기 대시보드 렌더링
+      renderDashboard();
+
+      // 7. QR코드 스캔 또는 공유 URL 파라미터 자동 처리
+      const hasUrlParam = handleUrlParametersOnLoad();
+
+      // 8. 파라미터 없이 메인 접속 시 현재 활성 클래스의 QR코드 미리 준비
+      if (!hasUrlParam) {
+        // 기본 저장된 사용자 역할 적용 (기본값: admin)
+        const savedRole = localStorage.getItem(STORAGE_KEYS.USER_ROLE) || "admin";
+        setUserRole(savedRole, true);
+
+        const activeId = localStorage.getItem(STORAGE_KEYS.ACTIVE_CLASS_ID);
+        const classes = getStoredClasses();
+        const currentClass = classes.find(c => c.id === activeId) || classes[0];
+        if (currentClass) {
+          const nameInput = document.getElementById("inputCourseName");
+          const dateInput = document.getElementById("inputCourseDate");
+          const instInput = document.getElementById("inputInstructor");
+          if (nameInput && !nameInput.value) nameInput.value = currentClass.name;
+          if (dateInput && currentClass.date) dateInput.value = currentClass.date;
+          if (instInput && !instInput.value) instInput.value = currentClass.instructor;
+          showShareResult(currentClass);
+        }
+      }
+    });
+
+    /**
+     * QR코드 스캔이나 공유 링크 접속 시 URL 파라미터 파싱 및 역할/화면 자동 분기
+     */
+    function handleUrlParametersOnLoad() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const classIdParam = urlParams.get('classId') || urlParams.get('code') || urlParams.get('class');
+        const roleParam = urlParams.get('role') || urlParams.get('mode') || urlParams.get('view');
+        
+        // 역할 판별: role이 student이거나 QR/링크로 classId를 전달받은 경우 교육생 모드로 진입
+        if (roleParam === 'student' || (!roleParam && classIdParam)) {
+          setUserRole('student', true);
+        } else if (roleParam === 'admin') {
+          setUserRole('admin', true);
+        } else {
+          const savedRole = localStorage.getItem(STORAGE_KEYS.USER_ROLE) || "admin";
+          setUserRole(savedRole, true);
+        }
+
+        if (classIdParam) {
+          let classes = getStoredClasses();
+          let targetClass = classes.find(c => c.id === classIdParam);
+          
+          if (!targetClass) {
+            // 다른 기기(스마트폰 등)에서 QR코드로 처음 접속한 경우, 쿼리스트링 메타데이터로 클래스 즉시 동기화
+            const titleParam = urlParams.get('title') || '2026 AI·AX 리더십 역량 진단';
+            const dateParam = urlParams.get('date') || new Date().toISOString().split('T')[0];
+            const instructorParam = urlParams.get('instructor') || 'GAM 컨설팅 리더십 전문위원';
+            
+            targetClass = {
+              id: classIdParam,
+              name: decodeURIComponent(titleParam),
+              date: decodeURIComponent(dateParam),
+              instructor: decodeURIComponent(instructorParam),
+              createdAt: new Date().toISOString()
+            };
+            classes.unshift(targetClass);
+            localStorage.setItem(STORAGE_KEYS.CLASSES, JSON.stringify(classes));
+          }
+          
+          // 활성 클래스로 지정
+          localStorage.setItem(STORAGE_KEYS.ACTIVE_CLASS_ID, targetClass.id);
+          syncClassSelectDropdowns();
+          
+          // 즉시 화면 2 (진단 설문 응답 화면)으로 전환
+          switchScreen(2);
+          showToast(`📋 '${targetClass.name}' 교육생 설문으로 자동 연결되었습니다.`);
+          return true;
+        }
+      } catch (e) {
+        console.error("URL 파라미터 처리 중 오류:", e);
+      }
+      return false;
+    }
+
+    /**
+     * 초기 데모 클래스 및 샘플 데이터 설정
+     */
+    function initDefaultData() {
+      let classes = getStoredClasses();
+      if (!classes || classes.length === 0) {
+        const defaultClass = {
+          id: "CLASS-AX-MEMBER",
+          name: "2026 AI·AX 실무 역량강화 워크숍 (팀원용)",
+          date: new Date().toISOString().split('T')[0],
+          instructor: "GAM 컨설팅 실무 전문위원",
+          createdAt: new Date().toISOString()
+        };
+        classes = [defaultClass];
+        localStorage.setItem(STORAGE_KEYS.CLASSES, JSON.stringify(classes));
+        localStorage.setItem(STORAGE_KEYS.ACTIVE_CLASS_ID, defaultClass.id);
+
+        // 초기 데모 응답 6건 자동 생성 (20문항 지원)
+        seedInitialDemoResponses(defaultClass.id);
+      }
+    }
+
+    /**
+     * 시연을 위한 초기 샘플 응답 데이터 생성 (20개 문항 대응 - 팀원 관점)
+     */
+    function seedInitialDemoResponses(classId) {
+      const existing = getStoredResponses();
+      if (existing.length > 0) return;
+
+      const sampleData = [
+        { 
+          name: "김민석 매니저", 
+          dept: "(주)미래테크 · 팀원", 
+          role: "팀원",
+          company: "(주)미래테크",
+          answers: { 1: 5, 2: 5, 3: 4, 4: 4, 5: 4, 6: 4, 7: 5, 8: 4, 9: 4, 10: 4, 11: 5, 12: 4, 13: 4, 14: 4, 15: 3, 16: 4, 17: 5, 18: 4, 19: 3, 20: 4 }, 
+          essay: "AI가 생성한 초안의 팩트체크와 출처 확인에 신경을 많이 쓰고 있으며, 팀 내에 유용한 프롬프트를 정기적으로 공유하고 있습니다." 
+        },
+        { 
+          name: "이수진 선임", 
+          dept: "글로벌AX · 팀원", 
+          role: "팀원",
+          company: "글로벌AX",
+          answers: { 1: 4, 2: 4, 3: 5, 4: 5, 5: 4, 6: 5, 7: 4, 8: 5, 9: 4, 10: 3, 11: 4, 12: 4, 13: 3, 14: 4, 15: 4, 16: 4, 17: 4, 18: 3, 19: 4, 20: 3 }, 
+          essay: "AI 제안과 내 직관이 다를 때 데이터 근거를 역추적하는 훈련을 하고 있으며, 1:1 면담 준비 시 예상 질문을 뽑아보는 데 유용하게 쓰고 있습니다." 
+        },
+        { 
+          name: "박지훈 프로", 
+          dept: "현대혁신 · 팀원", 
+          role: "팀원",
+          company: "현대혁신",
+          answers: { 1: 5, 2: 4, 3: 3, 4: 4, 5: 4, 6: 3, 7: 4, 8: 4, 9: 5, 10: 5, 11: 4, 12: 4, 13: 4, 14: 3, 15: 3, 16: 5, 17: 5, 18: 4, 19: 3, 20: 4 }, 
+          essay: "일상적인 자료 조사와 초안 작성 시간을 AI로 대폭 줄여서, 신규 마케팅 기획과 창의적인 아이디어 도출에 더 많은 시간을 쓰고 있습니다." 
+        },
+        { 
+          name: "최은경 연구원", 
+          dept: "한국AI · 팀원", 
+          role: "팀원",
+          company: "한국AI",
+          answers: { 1: 4, 2: 3, 3: 4, 4: 4, 5: 3, 6: 4, 7: 4, 8: 4, 9: 4, 10: 4, 11: 4, 12: 4, 13: 5, 14: 5, 15: 4, 16: 4, 17: 4, 18: 3, 19: 3, 20: 4 }, 
+          essay: "동료와의 협업 메일이나 보고서 문안을 다듬을 때 AI를 활용해 더 객관적이고 배려하는 어조로 정제하고 있습니다." 
+        },
+        { 
+          name: "정태우 개발자", 
+          dept: "넥스트인사이트 · 팀원", 
+          role: "팀원",
+          company: "넥스트인사이트",
+          answers: { 1: 5, 2: 5, 3: 5, 4: 4, 5: 5, 6: 4, 7: 5, 8: 5, 9: 5, 10: 5, 11: 5, 12: 5, 13: 4, 14: 4, 15: 4, 16: 4, 17: 5, 18: 5, 19: 4, 20: 4 }, 
+          essay: "단순 복사 붙여넣기 대신 재프롬프팅으로 완성도를 높이고, 팀원들에게 실무에 유용한 프롬프트 위키를 만들어 공유 중입니다." 
+        },
+        { 
+          name: "익명 실무자", 
+          dept: "영업기획 · 팀원", 
+          role: "팀원",
+          company: "영업기획",
+          answers: { 1: 3, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 4, 9: 3, 10: 3, 11: 3, 12: 3, 13: 3, 14: 3, 15: 3, 16: 3, 17: 3, 18: 2, 19: 3, 20: 2 }, 
+          essay: "AI 결과물의 환각을 어떻게 빠르게 검증할지, 그리고 사내 보안 가이드라인 내에서 안전하게 쓰는 실천 팁을 더 배우고 싶습니다." 
+        }
+      ];
+
+      const responses = sampleData.map((item, idx) => ({
+        id: "RES-" + Date.now() + "-" + idx,
+        classId: classId,
+        respondentCompany: item.company,
+        respondentName: item.name,
+        respondentRole: item.role,
+        respondentDept: item.dept,
+        answers: item.answers,
+        essay: item.essay,
+        submittedAt: new Date(Date.now() - (idx * 3600000 * 4)).toISOString()
+      }));
+
+      localStorage.setItem(STORAGE_KEYS.RESPONSES, JSON.stringify(responses));
+    }
+
+    /* ==========================================================================
+       [화면 전환 제어 함수]
+       ========================================================================== */
+    /**
+     * 주요 화면(1:설문 생성, 2:설문 응답, 3:대시보드) 간 전환
+     */
+    function switchScreen(screenNum) {
+      // 교육생 모드일 경우 1번(설문 생성) 화면 접근 차단 -> 2번(응답)으로 유도
+      if (currentUserRole === "student" && screenNum === 1) {
+        showToast("교육생 모드에서는 설문 응답 및 결과 대시보드만 이용 가능합니다.");
+        screenNum = 2;
+      }
+
+      // 1. 모든 섹션 숨김
+      document.getElementById("screen1").style.display = "none";
+      document.getElementById("screen2").style.display = "none";
+      document.getElementById("screen3").style.display = "none";
+
+      // 2. 탭 버튼 활성화 상태 갱신
+      document.getElementById("tabBtnScreen1").classList.remove("active");
+      document.getElementById("tabBtnScreen2").classList.remove("active");
+      document.getElementById("tabBtnScreen3").classList.remove("active");
+
+      // 3. 선택한 화면 노출 및 탭 활성화
+      const targetScreen = document.getElementById(`screen${screenNum}`);
+      const targetBtn = document.getElementById(`tabBtnScreen${screenNum}`);
+      if (targetScreen) targetScreen.style.display = "block";
+      if (targetBtn) targetBtn.classList.add("active");
+
+      // 4. 화면별 진입 시 추가 처리
+      if (screenNum === 2) {
+        updateSurveyHeaderInfo();
+      } else if (screenNum === 3) {
+        renderDashboard();
+      }
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    /* ==========================================================================
+       [화면 1 로직] 설문 생성 및 배포
+       ========================================================================== */
+    /**
+     * 화면 1의 12개 문항 미리보기 리스트 렌더링
+     */
+    function renderQuestionsPreview() {
+      const container = document.getElementById("previewQuestionsList");
+      if (!container) return;
+
+      container.innerHTML = ASSESSMENT_QUESTIONS.map(q => {
+        const domain = DOMAIN_INFO[q.domain];
+        return `
+          <div class="question-preview-item">
+            <span class="q-num-pill">Q${q.id}</span>
+            <div class="q-text-wrap">
+              <div style="font-weight: 600; color: #1e293b; margin-bottom: 2px;">${q.text}</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+                <span class="badge ${domain.badgeClass}">${domain.name}</span>
+                <span>1~5점 척도</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    /**
+     * 설문 생성 폼 제출 핸들러
+     */
+    function handleCreateClass(event) {
+      event.preventDefault();
+      
+      const courseName = document.getElementById("inputCourseName").value.trim();
+      const courseDate = document.getElementById("inputCourseDate").value;
+      const instructor = document.getElementById("inputInstructor").value.trim();
+
+      if (!courseName || !courseDate || !instructor) {
+        showToast("모든 필수 항목을 입력해 주세요.");
+        return;
+      }
+
+      // 고유 클래스 ID 생성
+      const classId = "CLASS-" + Date.now().toString(36).toUpperCase();
+
+      const newClass = {
+        id: classId,
+        name: courseName,
+        date: courseDate,
+        instructor: instructor,
+        createdAt: new Date().toISOString()
+      };
+
+      // LocalStorage에 클래스 저장
+      const classes = getStoredClasses();
+      classes.unshift(newClass);
+      localStorage.setItem(STORAGE_KEYS.CLASSES, JSON.stringify(classes));
+      localStorage.setItem(STORAGE_KEYS.ACTIVE_CLASS_ID, classId);
+
+      latestCreatedClass = newClass;
+
+      // 배포 카드 표시 및 QR코드 그리기 (교육생 전용 role=student 탑재)
+      showShareResult(newClass);
+
+      // 드롭다운 갱신
+      syncClassSelectDropdowns();
+
+      showToast("새로운 진단 설문 클래스가 생성되었습니다!");
+    }
+
+    /**
+     * 생성된 설문의 공유 링크 및 실제 카메라 인식 규격 QR코드 렌더링 (교육생 전용 파라미터 포함)
+     */
+    function showShareResult(classItem) {
+      const shareCard = document.getElementById("shareResultCard");
+      const shareUrlText = document.getElementById("shareUrlText");
+
+      // 현재 도메인/경로 기반의 완전한 교육생 전용 URL 생성 (role=student 포함)
+      const baseUrl = window.location.href.split('?')[0].split('#')[0];
+      const params = new URLSearchParams();
+      params.set('role', 'student'); // 교육생 화면 모드 지정
+      params.set('classId', classItem.id);
+      params.set('title', classItem.name);
+      params.set('date', classItem.date);
+      params.set('instructor', classItem.instructor);
+
+      const generatedUrl = `${baseUrl}?${params.toString()}`;
+      shareUrlText.innerText = generatedUrl;
+      shareUrlText.dataset.url = generatedUrl;
+
+      // 표준 규격(ISO/IEC 18004) 카메라 스캔 가능 QR코드 생성
+      renderRealQRCode(generatedUrl);
+
+      shareCard.style.display = "block";
+      shareCard.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    /**
+     * QRCode.js 및 Fallback 엔진을 활용한 표준 QR 코드 렌더링
+     */
+    function renderRealQRCode(url) {
+      const qrcodeContainer = document.getElementById("qrcode");
+      if (!qrcodeContainer) return;
+      qrcodeContainer.innerHTML = ""; // 기존 QR 초기화
+
+      let isRendered = false;
+
+      // 1. QRCode.js 라이브러리 사용 시도
+      if (typeof QRCode !== "undefined") {
+        try {
+          new QRCode(qrcodeContainer, {
+            text: url,
+            width: 180,
+            height: 180,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+          });
+          isRendered = true;
+        } catch (err) {
+          console.warn("QRCode.js 렌더링 실패, 폴백 전환:", err);
+        }
+      }
+
+      // 2. 라이브러리 미로드 시 즉각적인 고해상도 QR 이미지 폴백
+      if (!isRendered) {
+        const qrImg = document.createElement("img");
+        qrImg.id = "fallbackQrImg";
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(url)}&margin=4&format=png`;
+        qrImg.alt = "진단 설문 QR 코드";
+        qrImg.width = 180;
+        qrImg.height = 180;
+        qrImg.style.display = "block";
+        qrImg.style.borderRadius = "4px";
+        qrcodeContainer.appendChild(qrImg);
+      }
+    }
+
+    /**
+     * QR 코드를 고해상도 PNG 이미지로 저장 (강의 PPT 및 안내문 삽입용)
+     */
+    function downloadQRCodeImage() {
+      const qrcodeContainer = document.getElementById("qrcode");
+      if (!qrcodeContainer) return;
+
+      const canvas = qrcodeContainer.querySelector("canvas");
+      const img = qrcodeContainer.querySelector("img");
+      const classId = localStorage.getItem(STORAGE_KEYS.ACTIVE_CLASS_ID) || "AX-SURVEY";
+
+      if (canvas) {
+        try {
+          const dataUrl = canvas.toDataURL("image/png");
+          const a = document.createElement("a");
+          a.href = dataUrl;
+          a.download = `AI_AX_진단설문_QR_${classId}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          showToast("QR코드 이미지가 다운로드되었습니다.");
+          return;
+        } catch (e) {
+          console.warn("Canvas export failed:", e);
+        }
+      }
+
+      if (img && img.src) {
+        const a = document.createElement("a");
+        a.href = img.src;
+        a.download = `AI_AX_진단설문_QR_${classId}.png`;
+        a.target = "_blank";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showToast("QR코드 이미지가 저장되었습니다.");
+      } else {
+        showToast("다운로드할 QR 코드를 찾을 수 없습니다.");
+      }
+    }
+
+    /**
+     * 생성된 공유 설문 URL을 새 브라우저 탭에서 즉시 열기
+     */
+    function openShareUrlInNewTab() {
+      const shareUrlText = document.getElementById("shareUrlText");
+      const url = shareUrlText.dataset.url || shareUrlText.innerText;
+      if (url) {
+        window.open(url, "_blank");
+      }
+    }
+
+    /**
+     * 공유 링크 클립보드 복사
+     */
+    function copyShareLink() {
+      const shareUrlText = document.getElementById("shareUrlText");
+      const urlToCopy = shareUrlText.dataset.url || shareUrlText.innerText;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(urlToCopy).then(() => {
+          showToast("설문 링크가 클립보드에 복사되었습니다!");
+        }).catch(() => {
+          fallbackCopyText(urlToCopy);
+        });
+      } else {
+        fallbackCopyText(urlToCopy);
+      }
+    }
+
+    function fallbackCopyText(text) {
+      const tempInput = document.createElement("input");
+      tempInput.value = text;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempInput);
+      showToast("설문 링크가 클립보드에 복사되었습니다!");
+    }
+
+    /**
+     * 생성된 설문으로 바로 응답 화면으로 이동
+     */
+    function goToSurveyResponse() {
+      if (latestCreatedClass) {
+        localStorage.setItem(STORAGE_KEYS.ACTIVE_CLASS_ID, latestCreatedClass.id);
+      }
+      switchScreen(2);
+    }
+
+    /* ==========================================================================
+       [화면 2 로직] 진단 설문 응답 (교육 참가자용)
+       ========================================================================== */
+    /**
+     * 화면 2 상단 헤더 배너 정보 갱신
+     */
+    function updateSurveyHeaderInfo() {
+      const classes = getStoredClasses();
+      const activeId = localStorage.getItem(STORAGE_KEYS.ACTIVE_CLASS_ID);
+      const currentClass = classes.find(c => c.id === activeId) || classes[0];
+
+      if (currentClass) {
+        document.getElementById("surveyBannerTitle").innerText = currentClass.name;
+        document.getElementById("surveyBannerDate").innerText = `교육일자: ${currentClass.date}`;
+        document.getElementById("surveyBannerInstructor").innerText = `강사: ${currentClass.instructor}`;
+      }
+
+      // 셀렉트 박스 동기화 (존재 시)
+      const selectElem = document.getElementById("surveyClassSelect");
+      if (selectElem && currentClass) {
+        selectElem.value = currentClass.id;
+      }
+    }
+
+    /**
+     * 20개 진단 문항 응답 카드 렌더링
+     */
+    function renderSurveyQuestions() {
+      const container = document.getElementById("surveyQuestionsContainer");
+      if (!container) return;
+
+      const totalQCount = ASSESSMENT_QUESTIONS.length;
+      container.innerHTML = ASSESSMENT_QUESTIONS.map(q => {
+        const domain = DOMAIN_INFO[q.domain];
+        return `
+          <div class="survey-q-card" id="questionCard_${q.id}">
+            <div class="survey-q-header">
+              <span class="q-num-pill">문항 ${q.id} / ${totalQCount}</span>
+              <span class="badge ${domain.badgeClass}">${domain.name}</span>
+            </div>
+            
+            <div class="survey-q-title">
+              ${q.text}
+            </div>
+
+            <!-- 1~5점 척도 선택 버튼 -->
+            <div class="scale-options-grid">
+              ${SCALE_LABELS.map(opt => `
+                <button
+                  type="button"
+                  class="scale-option-btn"
+                  id="scaleBtn_${q.id}_${opt.score}"
+                  onclick="handleSelectScore(${q.id}, ${opt.score})"
+                >
+                  <span class="scale-score">${opt.score}점</span>
+                  <span class="scale-label">${opt.label}</span>
+                </button>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    /**
+     * 사용자가 특정 문항의 1~5점 척도를 클릭했을 때 처리
+     */
+    function handleSelectScore(questionId, score) {
+      currentSurveyAnswers[questionId] = score;
+
+      // 1. 해당 문항 버튼들의 선택 클래스 갱신
+      for (let s = 1; s <= 5; s++) {
+        const btn = document.getElementById(`scaleBtn_${questionId}_${s}`);
+        if (btn) {
+          if (s === score) {
+            btn.classList.add("selected");
+          } else {
+            btn.classList.remove("selected");
+          }
+        }
+      }
+
+      // 2. 문항 카드에 완료 테두리 표시
+      const card = document.getElementById(`questionCard_${questionId}`);
+      if (card) {
+        card.classList.add("answered");
+      }
+
+      // 3. 상단 진행률 프로그레스 바 갱신
+      updateProgressBar();
+    }
+
+    /**
+     * 응답 진행률 계산 및 프로그레스 바 업데이트
+     */
+    function updateProgressBar() {
+      const answeredCount = Object.keys(currentSurveyAnswers).length;
+      const totalCount = ASSESSMENT_QUESTIONS.length;
+      const percent = Math.round((answeredCount / totalCount) * 100);
+
+      const progressText = document.getElementById("progressText");
+      const progressPercent = document.getElementById("progressPercent");
+      const progressFill = document.getElementById("progressFill");
+
+      if (progressText) progressText.innerText = `응답 진행률: ${answeredCount} / ${totalCount} 문항 완료`;
+      if (progressPercent) progressPercent.innerText = `${percent}%`;
+      if (progressFill) progressFill.style.width = `${percent}%`;
+    }
+
+    /**
+     * 응답 대상 클래스 셀렉트 박스 변경 시
+     */
+    function handleSurveyClassChange() {
+      const selectElem = document.getElementById("surveyClassSelect");
+      if (selectElem) {
+        localStorage.setItem(STORAGE_KEYS.ACTIVE_CLASS_ID, selectElem.value);
+        updateSurveyHeaderInfo();
+      }
+    }
+
+    /**
+     * 설문 응답 제출 핸들러 (회사명, 이름, 직책 필수 입력 검증)
+     */
+    function handleSurveySubmit(event) {
+      event.preventDefault();
+
+      const compInput = document.getElementById("respondentCompany");
+      const nameInput = document.getElementById("respondentName");
+      const roleSelect = document.getElementById("respondentRole");
+
+      const company = compInput ? compInput.value.trim() : "";
+      const name = nameInput ? nameInput.value.trim() : "";
+      const role = roleSelect ? roleSelect.value.trim() : "";
+
+      // 1. 응답자 3대 필수 정보 유효성 검증
+      if (!company) {
+        showToast("회사명을 반드시 입력해 주세요.");
+        if (compInput) {
+          compInput.focus();
+          compInput.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        return;
+      }
+
+      if (!name) {
+        showToast("이름(성명)을 반드시 입력해 주세요.");
+        if (nameInput) {
+          nameInput.focus();
+          nameInput.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        return;
+      }
+
+      if (!role) {
+        showToast("직책(팀장 / 팀원 / 본부장 임원이상)을 선택해 주세요.");
+        if (roleSelect) {
+          roleSelect.focus();
+          roleSelect.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        return;
+      }
+
+      // 2. 20개 문항 모두 응답했는지 유효성 검증
+      const answeredIds = Object.keys(currentSurveyAnswers).map(Number);
+      const missingQuestions = ASSESSMENT_QUESTIONS.filter(q => !answeredIds.includes(q.id));
+
+      if (missingQuestions.length > 0) {
+        const firstMissing = missingQuestions[0];
+        showToast(`Q${firstMissing.id}번 문항에 점수를 선택해 주세요.`);
+        const missingCard = document.getElementById(`questionCard_${firstMissing.id}`);
+        if (missingCard) {
+          missingCard.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        return;
+      }
+
+      const activeClassId = localStorage.getItem(STORAGE_KEYS.ACTIVE_CLASS_ID) || (getStoredClasses()[0] ? getStoredClasses()[0].id : "DEFAULT");
+      const essay = document.getElementById("essayAnswer") ? document.getElementById("essayAnswer").value.trim() : "";
+
+      const newResponse = {
+        id: "RES-" + Date.now(),
+        classId: activeClassId,
+        respondentCompany: company,
+        respondentName: name,
+        respondentRole: role,
+        respondentDept: `${company} · ${role}`,
+        answers: { ...currentSurveyAnswers },
+        essay: essay,
+        submittedAt: new Date().toISOString()
+      };
+
+      // LocalStorage에 응답 저장
+      const responses = getStoredResponses();
+      responses.unshift(newResponse);
+      localStorage.setItem(STORAGE_KEYS.RESPONSES, JSON.stringify(responses));
+      localStorage.setItem(STORAGE_KEYS.LAST_RESPONDENT_ID, newResponse.id);
+      localStorage.setItem(STORAGE_KEYS.SELECTED_RESPONDENT_ID, newResponse.id);
+
+      // 폼 초기화
+      resetSurveyForm();
+
+      // 성공 모달 노출
+      const modal = document.getElementById("submitSuccessModal");
+      if (modal) modal.style.display = "flex";
+    }
+
+    /**
+     * 설문 입력 상태 리셋
+     */
+    function resetSurveyForm() {
+      currentSurveyAnswers = {};
+      document.querySelectorAll(".scale-option-btn").forEach(btn => btn.classList.remove("selected"));
+      document.querySelectorAll(".survey-q-card").forEach(card => card.classList.remove("answered"));
+      if (document.getElementById("respondentCompany")) document.getElementById("respondentCompany").value = "";
+      if (document.getElementById("respondentName")) document.getElementById("respondentName").value = "";
+      if (document.getElementById("respondentRole")) document.getElementById("respondentRole").value = "";
+      if (document.getElementById("essayAnswer")) document.getElementById("essayAnswer").value = "";
+      updateProgressBar();
+    }
+
+    /**
+     * 제출 완료 모달 닫고 결과 대시보드로 이동
+     */
+    function closeSuccessModalAndGoDash() {
+      const modal = document.getElementById("submitSuccessModal");
+      if (modal) modal.style.display = "none";
+      switchScreen(3);
+    }
+
+    /* ==========================================================================
+       [화면 3 로직] 진단 결과 대시보드 (진단 당사자 vs 전체 종합평균 비교 분석)
+       ========================================================================== */
+    /**
+     * 대시보드 상단 진단자 셀렉트 박스 변경 시
+     */
+    function handleRespondentFilterChange() {
+      const select = document.getElementById("dashRespondentFilter");
+      if (select && select.value) {
+        localStorage.setItem(STORAGE_KEYS.SELECTED_RESPONDENT_ID, select.value);
+        renderDashboard();
+        const selectedText = select.options[select.selectedIndex]?.text || "선택된 진단자";
+        showToast(`분석 대상 진단자가 [${selectedText}] (으)로 변경되었습니다.`);
+      }
+    }
+
+    /**
+     * 대시보드 전체 화면 렌더링 (KPI, 5대 영역 듀얼 바 차트, 맞춤 액션 플랜, 문항별 비교표)
+     */
+    function renderDashboard() {
+      const filterSelect = document.getElementById("dashClassFilter");
+      const selectedClassId = filterSelect ? filterSelect.value : "ALL";
+
+      // 상단 분석 대상 클래스 표시 텍스트 갱신
+      const activeClassElem = document.getElementById("dashActiveClassName");
+      if (activeClassElem) {
+        if (selectedClassId === "ALL") {
+          activeClassElem.innerText = "전체 통합 진단 결과 분석 (모든 클래스)";
+        } else {
+          const classes = getStoredClasses();
+          const found = classes.find(c => c.id === selectedClassId);
+          activeClassElem.innerText = found ? `${found.name} (${found.date}) 결과 분석` : "선택 클래스 진단 결과 분석";
+        }
+      }
+
+      const allResponses = getStoredResponses();
+      // 선택된 클래스 필터 적용
+      const filteredResponses = (selectedClassId === "ALL")
+        ? allResponses
+        : allResponses.filter(r => r.classId === selectedClassId);
+
+      const totalCount = filteredResponses.length;
+
+      // 1. KPI 카드 총 응답자 수 업데이트
+      document.getElementById("kpiTotalResponses").innerText = `${totalCount}명`;
+
+      const respondentSelect = document.getElementById("dashRespondentFilter");
+
+      if (totalCount === 0) {
+        if (respondentSelect) {
+          respondentSelect.innerHTML = `<option value="">응답 데이터 없음</option>`;
+        }
+        document.getElementById("kpiMyScore").innerHTML = `0.0 <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">/ 5.0</span>`;
+        document.getElementById("kpiMyScoreGap").innerText = "진단 데이터 대기 중";
+        document.getElementById("kpiAvgScore").innerHTML = `0.0 <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">/ 5.0</span>`;
+        document.getElementById("kpiScoreStatus").innerText = "응답 데이터 없음";
+        document.getElementById("kpiTopDomain").innerText = "-";
+        document.getElementById("kpiTopDomainScore").innerText = "데이터 없음";
+        document.getElementById("kpiLowDomain").innerText = "-";
+        document.getElementById("kpiLowDomainScore").innerText = "데이터 없음";
+
+        renderEmptyDashboard();
+        return;
+      }
+
+      // 2. 진단 당사자(분석 대상자) 식별 및 셀렉트 박스 동기화
+      const lastRespondentId = localStorage.getItem(STORAGE_KEYS.LAST_RESPONDENT_ID);
+      let selectedRespId = localStorage.getItem(STORAGE_KEYS.SELECTED_RESPONDENT_ID);
+
+      let activeRespondent = null;
+      if (currentUserRole === "student") {
+        // [교육생 모드] 본인의 제출 응답(lastRespondentId)만 엄격하게 고정하여 전체 평균 대비 본인 점수만 확인
+        activeRespondent = filteredResponses.find(r => r.id === lastRespondentId) || filteredResponses[filteredResponses.length - 1] || filteredResponses[0];
+      } else {
+        // [운영자 모드] 운영자가 드롭다운에서 선택한 진단자 분석
+        activeRespondent = filteredResponses.find(r => r.id === selectedRespId);
+        if (!activeRespondent) {
+          activeRespondent = filteredResponses.find(r => r.id === lastRespondentId) || filteredResponses[0];
+          selectedRespId = activeRespondent ? activeRespondent.id : null;
+          if (selectedRespId) {
+            localStorage.setItem(STORAGE_KEYS.SELECTED_RESPONDENT_ID, selectedRespId);
+          }
+        }
+      }
+
+      if (respondentSelect) {
+        respondentSelect.innerHTML = filteredResponses.map(r => {
+          const isLatest = (r.id === lastRespondentId);
+          const isSelected = (r.id === activeRespondent.id);
+          const labelPrefix = isLatest ? "★ [최근진단] " : "";
+          const companyRoleText = (r.respondentCompany && r.respondentRole)
+            ? `${r.respondentCompany} · ${r.respondentRole}`
+            : (r.respondentRole || r.respondentDept || r.respondentCompany || '소속 미지정');
+          return `<option value="${r.id}" ${isSelected ? "selected" : ""}>${labelPrefix}${escapeHtml(r.respondentName)} (${escapeHtml(companyRoleText)})</option>`;
+        }).join("");
+      }
+
+      // 교육생 전용 안내 뱃지 텍스트 갱신
+      const studentRespNameElem = document.getElementById("dashStudentRespondentName");
+      if (studentRespNameElem && activeRespondent) {
+        const companyRoleText = (activeRespondent.respondentCompany && activeRespondent.respondentRole)
+          ? `${activeRespondent.respondentCompany} · ${activeRespondent.respondentRole}`
+          : (activeRespondent.respondentRole || activeRespondent.respondentDept || activeRespondent.respondentCompany || '');
+        studentRespNameElem.innerText = `${activeRespondent.respondentName}${companyRoleText ? ' (' + companyRoleText + ')' : ''}`;
+      }
+
+      // 3. 20개 문항별 전체 평균 및 진단자 개별 점수 계산
+      const questionAverages = {};
+      const myQuestionScores = {};
+
+      ASSESSMENT_QUESTIONS.forEach(q => {
+        let sum = 0;
+        filteredResponses.forEach(r => {
+          sum += (r.answers && r.answers[q.id]) ? Number(r.answers[q.id]) : 0;
+        });
+        questionAverages[q.id] = (sum / totalCount);
+        myQuestionScores[q.id] = (activeRespondent.answers && activeRespondent.answers[q.id])
+          ? Number(activeRespondent.answers[q.id])
+          : questionAverages[q.id];
+      });
+
+      // 4. 5대 핵심 영역별 전체 평균 및 진단자 개별 평균 계산
+      const domainAverages = {};
+      const myDomainScores = {};
+      let totalOverallSum = 0;
+      let totalMyOverallSum = 0;
+      const domainKeys = Object.keys(DOMAIN_INFO);
+
+      domainKeys.forEach(domainKey => {
+        const qNums = DOMAIN_INFO[domainKey].questions;
+        let dSum = 0;
+        let myDSum = 0;
+        qNums.forEach(num => {
+          dSum += (questionAverages[num] || 0);
+          myDSum += (myQuestionScores[num] || 0);
+        });
+        const dAvg = dSum / qNums.length;
+        const myDAvg = myDSum / qNums.length;
+
+        domainAverages[domainKey] = dAvg;
+        myDomainScores[domainKey] = myDAvg;
+
+        totalOverallSum += dAvg;
+        totalMyOverallSum += myDAvg;
+      });
+
+      const overallAvg = Number((totalOverallSum / domainKeys.length).toFixed(2));
+      const myOverallAvg = Number((totalMyOverallSum / domainKeys.length).toFixed(2));
+      const overallGap = Number((myOverallAvg - overallAvg).toFixed(2));
+
+      const activeRespondentTag = (activeRespondent.respondentCompany && activeRespondent.respondentRole)
+        ? `${activeRespondent.respondentName} (${activeRespondent.respondentCompany} · ${activeRespondent.respondentRole})`
+        : `${activeRespondent.respondentName} (${activeRespondent.respondentRole || activeRespondent.respondentDept || '진단자'})`;
+
+      // 진단자 점수 KPI 업데이트
+      document.getElementById("kpiMyScore").innerHTML = `${myOverallAvg.toFixed(2)} <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">/ 5.0</span>`;
+      const myGapElem = document.getElementById("kpiMyScoreGap");
+      if (myGapElem) {
+        if (overallGap > 0) {
+          myGapElem.innerHTML = `<span style="color: #16a34a; font-weight: 700;">전체 대비 +${overallGap.toFixed(2)}점 상회 ▲</span> (${escapeHtml(activeRespondent.respondentName)} ${escapeHtml(activeRespondent.respondentRole ? '· ' + activeRespondent.respondentRole : '')})`;
+        } else if (overallGap < 0) {
+          myGapElem.innerHTML = `<span style="color: #dc2626; font-weight: 700;">전체 대비 ${overallGap.toFixed(2)}점 보완 권장 ▼</span> (${escapeHtml(activeRespondent.respondentName)} ${escapeHtml(activeRespondent.respondentRole ? '· ' + activeRespondent.respondentRole : '')})`;
+        } else {
+          myGapElem.innerHTML = `<span style="color: #475569; font-weight: 700;">전체 평균과 동일 ●</span> (${escapeHtml(activeRespondent.respondentName)} ${escapeHtml(activeRespondent.respondentRole ? '· ' + activeRespondent.respondentRole : '')})`;
+        }
+      }
+
+      // 전체 평균 KPI 업데이트
+      document.getElementById("kpiAvgScore").innerHTML = `${overallAvg.toFixed(2)} <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">/ 5.0</span>`;
+      let statusText = "기초 도입 단계";
+      if (overallAvg >= 4.2) statusText = "🌟 선도적 AI 혁신 리더십 수준";
+      else if (overallAvg >= 3.6) statusText = "🚀 활발한 실무 적용 수준";
+      else if (overallAvg >= 3.0) statusText = "🌱 체계화 진행 단계";
+      else statusText = "⚠️ 집중 교육 및 역량 강화 필요";
+      document.getElementById("kpiScoreStatus").innerText = statusText;
+
+      // 진단자 기준 최우수 강점 및 보완 집중 영역 도출
+      let myTopDomainKey = domainKeys[0];
+      let myLowDomainKey = domainKeys[0];
+      let myMaxScore = -1;
+      let myMinScore = 999;
+
+      domainKeys.forEach(key => {
+        if (myDomainScores[key] > myMaxScore) {
+          myMaxScore = myDomainScores[key];
+          myTopDomainKey = key;
+        }
+        if (myDomainScores[key] < myMinScore) {
+          myMinScore = myDomainScores[key];
+          myLowDomainKey = key;
+        }
+      });
+
+      document.getElementById("kpiTopDomain").innerText = myTopDomainKey;
+      document.getElementById("kpiTopDomainScore").innerText = `진단자 ${myMaxScore.toFixed(2)}점 (평균 ${domainAverages[myTopDomainKey].toFixed(2)}점)`;
+      document.getElementById("kpiLowDomain").innerText = myLowDomainKey;
+      document.getElementById("kpiLowDomainScore").innerText = `진단자 ${myMinScore.toFixed(2)}점 (평균 ${domainAverages[myLowDomainKey].toFixed(2)}점)`;
+
+      // 5. 5대 영역 듀얼 가로 막대 그래프 렌더링 (진단자 vs 전체평균)
+      renderDomainBars(domainAverages, myDomainScores, activeRespondent);
+
+      // 6. 5대 영역별 심층 분석 및 진단자 맞춤형 실천 Action Plan 카드 렌더링
+      renderDomainActionPlans(domainAverages, myDomainScores, activeRespondent);
+
+      // 7. 20개 문항별 상세 비교 테이블 렌더링
+      renderQuestionTable(questionAverages, myQuestionScores);
+
+      // 8. 주관식 피드백 리스트 렌더링
+      renderEssayFeedback(filteredResponses);
+    }
+
+    /**
+     * 5대 영역 가로 막대 그래프 렌더링 (진단자 점수 vs 전체 평균 듀얼 비교)
+     */
+    function renderDomainBars(domainAverages, myDomainScores, activeRespondent) {
+      const container = document.getElementById("domainBarsContainer");
+      if (!container) return;
+
+      container.innerHTML = Object.keys(DOMAIN_INFO).map(domainKey => {
+        const info = DOMAIN_INFO[domainKey];
+        const myScore = Number((myDomainScores[domainKey] || 0).toFixed(2));
+        const avgScore = Number((domainAverages[domainKey] || 0).toFixed(2));
+        const gap = Number((myScore - avgScore).toFixed(2));
+
+        const myPercent = Math.min(100, Math.round((myScore / 5.0) * 100));
+        const avgPercent = Math.min(100, Math.round((avgScore / 5.0) * 100));
+
+        let gapPillHtml = "";
+        if (gap > 0) {
+          gapPillHtml = `<span class="gap-pill positive">▲ +${gap.toFixed(2)}점 (평균 상회)</span>`;
+        } else if (gap < 0) {
+          gapPillHtml = `<span class="gap-pill negative">▼ ${gap.toFixed(2)}점 (보완 권장)</span>`;
+        } else {
+          gapPillHtml = `<span class="gap-pill equal">● 0.00점 (평균 일치)</span>`;
+        }
+
+        let myGradeText = "보통";
+        if (myScore >= 4.2) myGradeText = "탁월 (Advanced)";
+        else if (myScore >= 3.6) myGradeText = "우수 (Proficient)";
+        else if (myScore >= 3.0) myGradeText = "양호 (Developing)";
+        else myGradeText = "집중 보완 (Foundational)";
+
+        return `
+          <div class="domain-bar-row">
+            <div class="domain-bar-header">
+              <div class="domain-name-group">
+                <span class="badge ${info.badgeClass}">${domainKey}</span>
+                <span class="domain-title-text">${info.name}</span>
+                <span style="font-size: 0.8rem; color: #64748b;">(문항 ${info.questions.join(', ')}번)</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                ${gapPillHtml}
+                <span style="font-size: 0.86rem; font-weight: 700; color: #475569;">${myGradeText}</span>
+              </div>
+            </div>
+
+            <!-- 듀얼 비교 바 차트 영역 -->
+            <div class="dual-bars-wrapper">
+              <!-- 1) 진단 당사자 / 나의 점수 바 -->
+              <div class="dual-bar-item">
+                <div class="dual-bar-label">
+                  <span>👤</span>
+                  <span style="font-weight: 800; color: #4338ca;">${currentUserRole === 'student' ? '나의 점수' : escapeHtml(activeRespondent.respondentName) + (activeRespondent.respondentRole ? ' (' + escapeHtml(activeRespondent.respondentRole) + ')' : '')}:</span>
+                </div>
+                <div class="dual-bar-track">
+                  <div class="bar-fill" style="width: ${myPercent}%; background: ${info.hexColor};"></div>
+                </div>
+                <div class="dual-bar-score" style="color: #4338ca;">
+                  <strong>${myScore.toFixed(2)}점</strong>
+                </div>
+              </div>
+
+              <!-- 2) 전체 그룹 종합 평균 바 -->
+              <div class="dual-bar-item">
+                <div class="dual-bar-label" style="color: #64748b;">
+                  <span>🌐</span>
+                  <span>전체 평균:</span>
+                </div>
+                <div class="dual-bar-track">
+                  <div class="bar-fill" style="width: ${avgPercent}%; background: #94a3b8;"></div>
+                </div>
+                <div class="dual-bar-score" style="color: #64748b; font-weight: 600;">
+                  ${avgScore.toFixed(2)}점
+                </div>
+              </div>
+            </div>
+
+            <div class="domain-guide-text">
+              <strong>💡 영역 핵심 가이드:</strong> ${info.desc}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    /**
+     * 5대 영역별 심층 분석 및 진단 당사자 맞춤형 실천 Action Plan 카드 렌더링
+     */
+    function renderDomainActionPlans(domainAverages, myDomainScores, activeRespondent) {
+      const container = document.getElementById("domainActionPlansContainer");
+      if (!container) return;
+
+      const isStudent = (currentUserRole === "student");
+      const nameLabel = isStudent ? "나" : escapeHtml(activeRespondent.respondentName);
+
+      container.innerHTML = Object.keys(DOMAIN_INFO).map(domainKey => {
+        const info = DOMAIN_INFO[domainKey];
+        const guidance = ACTION_GUIDANCE[domainKey] || {
+          title: info.name,
+          icon: "📌",
+          highDiagnosis: "우수한 수준을 유지하고 있습니다.",
+          lowDiagnosis: "지속적인 관심과 실천 지침 도입이 권장됩니다.",
+          actionSteps: ["팀원들과 협의하여 개선 프로세스를 수립하세요."]
+        };
+
+        const myScore = Number((myDomainScores[domainKey] || 0).toFixed(2));
+        const avgScore = Number((domainAverages[domainKey] || 0).toFixed(2));
+        const gap = Number((myScore - avgScore).toFixed(2));
+
+        // 진단 당사자의 점수 및 전체 평균 대비 격차를 기반으로 맞춤형 진단 도출
+        const isSuperior = (myScore >= 4.0 || (myScore >= 3.6 && gap >= 0.25));
+        const isLow = (myScore < 3.2 || gap <= -0.4);
+
+        let statusTitle = "";
+        let diagnosisText = "";
+        let diagnosisColor = "#16a34a";
+        let boxBg = "#f0fdf4";
+        let actionListTitle = "";
+        let customActionSteps = [];
+
+        if (isSuperior) {
+          statusTitle = `🌟 [${nameLabel}] 님의 핵심 강점 역량`;
+          diagnosisColor = "#16a34a";
+          boxBg = "#f0fdf4";
+          diagnosisText = `${isStudent ? '나의 점수' : '진단 당사자 점수'}는 <strong>${myScore.toFixed(2)}점</strong>으로 전체 평균(<strong>${avgScore.toFixed(2)}점</strong> 대비 <strong>+${gap.toFixed(2)}점</strong>)을 크게 상회하는 탁월한 핵심 강점 영역입니다. ${guidance.highDiagnosis}`;
+          actionListTitle = "📋 강점 극대화 및 팀 전파 실천 지침 (Action Steps)";
+          customActionSteps = [
+            `<strong>노하우 표준화:</strong> ${isStudent ? '나의' : '진단자님의'} 우수한 ${info.name.replace(/^[0-9]\.\s*/, '')} 실천 노하우를 팀 가이드라인으로 정리해 공유하세요.`,
+            guidance.actionSteps[0],
+            guidance.actionSteps[1]
+          ];
+        } else if (isLow) {
+          statusTitle = `🌱 [${nameLabel}] 님의 우선 보완 집중 과제`;
+          diagnosisColor = "#ea580c";
+          boxBg = "#fff7ed";
+          diagnosisText = `${isStudent ? '나의 점수' : '진단 당사자 점수'}는 <strong>${myScore.toFixed(2)}점</strong>으로 전체 평균(<strong>${avgScore.toFixed(2)}점</strong> 대비 <strong>${gap.toFixed(2)}점</strong>) 대비 실무 체계화가 우선 필요한 집중 보완 영역입니다. ${guidance.lowDiagnosis}`;
+          actionListTitle = "📋 우선 개선 및 현장 체계화 실천 지침 (Action Steps)";
+          customActionSteps = [
+            guidance.actionSteps[0],
+            guidance.actionSteps[1],
+            guidance.actionSteps[2]
+          ];
+        } else {
+          statusTitle = `⚡ [${nameLabel}] 님의 실무 적용 단계`;
+          diagnosisColor = "#0284c7";
+          boxBg = "#f0f9ff";
+          diagnosisText = `${isStudent ? '나의 점수' : '진단 당사자 점수'}는 <strong>${myScore.toFixed(2)}점</strong>(전체 평균 ${avgScore.toFixed(2)}점, 격차 ${gap >= 0 ? '+' : ''}${gap.toFixed(2)}점)으로 실무에 안정적으로 적용하고 계십니다. 정기적인 템플릿화와 피드백 루틴을 강화하면 최상위 리더십 역량으로 도약할 수 있습니다.`;
+          actionListTitle = "📋 역량 고도화 및 루틴 체계화 실천 지침 (Action Steps)";
+          customActionSteps = [
+            guidance.actionSteps[0],
+            guidance.actionSteps[1],
+            guidance.actionSteps[2]
+          ];
+        }
+
+        return `
+          <div class="action-plan-card" style="border-top: 4px solid ${info.hexColor};">
+            <div>
+              <div class="action-card-header">
+                <div class="action-card-title">
+                  <span>${guidance.icon}</span>
+                  <span>${info.name}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span class="action-score-badge" style="color: #4338ca; background: #e0e7ff; border-color: #c7d2fe;">
+                    👤 ${isStudent ? '나의 점수' : '당사자'} ${myScore.toFixed(2)}점
+                  </span>
+                  <span class="action-score-badge" style="color: #64748b;">
+                    🌐 전체평균 ${avgScore.toFixed(2)}점
+                  </span>
+                </div>
+              </div>
+
+              <div class="action-diagnosis-box" style="border-left-color: ${diagnosisColor}; background: ${boxBg};">
+                <strong style="color: ${diagnosisColor};">${statusTitle}:</strong>
+                <div style="margin-top: 4px; color: #334155;">${diagnosisText}</div>
+              </div>
+
+              <div class="action-list-title">
+                <span>📋</span>
+                <span>${actionListTitle}</span>
+              </div>
+
+              <ul class="action-steps-list">
+                ${customActionSteps.map(step => `
+                  <li class="action-step-item">
+                    <span class="action-step-icon">✔</span>
+                    <span>${step}</span>
+                  </li>
+                `).join("")}
+              </ul>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    /**
+     * 문항별 상세 분석 테이블 렌더링 (진단자 점수 vs 전체 평균 대조)
+     */
+    function renderQuestionTable(questionAverages, myQuestionScores) {
+      const tbody = document.getElementById("questionScoreTableBody");
+      if (!tbody) return;
+
+      tbody.innerHTML = ASSESSMENT_QUESTIONS.map(q => {
+        const myScore = myQuestionScores[q.id] || 0;
+        const avgScore = Number((questionAverages[q.id] || 0).toFixed(2));
+        const gap = Number((myScore - avgScore).toFixed(2));
+        const domain = DOMAIN_INFO[q.domain];
+        
+        let gapHtml = `<span style="color:#64748b; font-weight:600;">0.00</span>`;
+        if (gap > 0) {
+          gapHtml = `<span style="color:#16a34a; font-weight:800;">+${gap.toFixed(2)} ▲</span>`;
+        } else if (gap < 0) {
+          gapHtml = `<span style="color:#dc2626; font-weight:800;">${gap.toFixed(2)} ▼</span>`;
+        }
+
+        let evalBadge = `<span class="badge" style="background:#f1f5f9; color:#475569; font-weight:700;">🟡 보통</span>`;
+        if (myScore >= 4) {
+          evalBadge = `<span class="badge" style="background:#dcfce7; color:#15803d; font-weight:700;">🟢 강점</span>`;
+        } else if (myScore <= 2 && myScore > 0) {
+          evalBadge = `<span class="badge" style="background:#fee2e2; color:#b91c1c; font-weight:700;">🔴 보완</span>`;
+        }
+
+        return `
+          <tr>
+            <td style="font-weight: 700; color: #475569;">Q${q.id}</td>
+            <td><span class="badge ${domain.badgeClass}">${q.domain}</span></td>
+            <td style="line-height: 1.45;">${q.text}</td>
+            <td style="text-align: center; font-weight: 800; color: #4338ca; background: rgba(224, 231, 255, 0.2);">${myScore}점</td>
+            <td style="text-align: center; font-weight: 700; color: #475569;">${avgScore.toFixed(2)}점</td>
+            <td style="text-align: center;">${gapHtml}</td>
+            <td style="text-align: center;">${evalBadge}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    /**
+     * 주관식 피드백 카드 목록 렌더링
+     */
+    function renderEssayFeedback(responses) {
+      const container = document.getElementById("essayFeedbackContainer");
+      if (!container) return;
+
+      const validEssays = responses.filter(r => r.essay && r.essay.trim().length > 0);
+
+      if (validEssays.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 32px; color: var(--text-muted);">
+            등록된 주관식 의견이 아직 없습니다.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = validEssays.map(r => {
+        const dateStr = new Date(r.submittedAt).toLocaleDateString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+        const companyRole = (r.respondentCompany && r.respondentRole)
+          ? `${r.respondentCompany} · ${r.respondentRole}`
+          : (r.respondentRole || r.respondentDept || r.respondentCompany || '소속 미지정');
+        return `
+          <div class="comment-card">
+            <div class="comment-text">"${escapeHtml(r.essay)}"</div>
+            <div class="comment-meta">
+              <span><strong>${escapeHtml(r.respondentName)}</strong> (${escapeHtml(companyRole)})</span>
+              <span>${dateStr}</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    /**
+     * 데이터가 없을 때의 빈 대시보드 뷰 렌더링
+     */
+    function renderEmptyDashboard() {
+      const barContainer = document.getElementById("domainBarsContainer");
+      if (barContainer) {
+        barContainer.innerHTML = `
+          <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+            <div style="font-size: 2.5rem; margin-bottom: 8px;">📭</div>
+            <p>아직 수집된 응답 데이터가 없습니다.</p>
+            <p style="font-size: 0.88rem; margin-top: 6px;">[설문 응답] 탭에서 진단을 진행하거나, 상단의 [샘플 응답 5건 추가] 버튼을 클릭해 보세요.</p>
+          </div>
+        `;
+      }
+      const actionContainer = document.getElementById("domainActionPlansContainer");
+      if (actionContainer) {
+        actionContainer.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-muted);">진단 데이터가 수집되면 5대 역량별 실천 액션 플랜이 생성됩니다.</div>`;
+      }
+      const tbody = document.getElementById("questionScoreTableBody");
+      if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 24px; color: var(--text-muted);">수집된 데이터가 없습니다.</td></tr>`;
+      }
+      const essayContainer = document.getElementById("essayFeedbackContainer");
+      if (essayContainer) {
+        essayContainer.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-muted);">주관식 답변이 없습니다.</div>`;
+      }
+    }
+
+    /**
+     * 시연을 위한 가상 샘플 응답 5건 즉시 추가 함수 (20개 문항 지원, 회사명/이름/직책 3대 속성 반영)
+     */
+    function generateSampleResponses() {
+      const classes = getStoredClasses();
+      const filterSelect = document.getElementById("dashClassFilter");
+      const selectedClassId = (filterSelect && filterSelect.value !== "ALL") ? filterSelect.value : null;
+      const activeId = selectedClassId || localStorage.getItem(STORAGE_KEYS.ACTIVE_CLASS_ID) || ((classes.length > 0) ? classes[0].id : "DEMO_CLASS");
+
+      const sampleCompanies = ["(주)미래테크", "글로벌AX솔루션", "현대혁신그룹", "한국AI네트웍스", "넥스트인사이트"];
+      const sampleNames = ["강민우 매니저", "오승현 선임", "유하나 프로", "신동혁 연구원", "배소영 개발자"];
+      const sampleRoles = ["팀원", "팀원", "팀원", "팀원", "팀원"];
+      const sampleEssays = [
+        "AI 산출물의 신뢰성 검증 체크리스트와 팀장님 1:1 면담 준비 시 활용하는 논리적 프롬프트 라이브러리가 유용합니다.",
+        "기존 수작업 관행 업무를 AI 친화적으로 재설계하면서 사내 기밀 보안 및 저작권 가이드라인을 철저히 지키고 있습니다.",
+        "동료 간 디지털 격차를 줄이기 위해 주간 우수 프롬프트 공유회와 짝 실습을 적극적으로 제안하고 있습니다.",
+        "AI 제안과 내 직관이 충돌할 때 실패 리스크에 따른 명확한 판단 기준을 세우고 실무 담당자로서 최종 책임을 다합니다.",
+        "팀장 보고 및 동료 협업 피드백 문안 작성 시 AI 자문을 활용하니 정중함과 객관성을 동시에 높이는 데 큰 도움이 됩니다."
+      ];
+
+      const newBatch = sampleNames.map((name, i) => {
+        const randomAnswers = {};
+        ASSESSMENT_QUESTIONS.forEach(q => {
+          // 3~5점 위주의 현실적인 점수 분포
+          randomAnswers[q.id] = Math.floor(Math.random() * 3) + 3;
+        });
+        return {
+          id: "RES-SAMPLE-" + Date.now() + "-" + i,
+          classId: activeId,
+          respondentCompany: sampleCompanies[i],
+          respondentName: name,
+          respondentRole: sampleRoles[i],
+          respondentDept: `${sampleCompanies[i]} · ${sampleRoles[i]}`,
+          answers: randomAnswers,
+          essay: sampleEssays[i],
+          submittedAt: new Date(Date.now() - (i * 1800000)).toISOString()
+        };
+      });
+
+      const responses = getStoredResponses();
+      responses.unshift(...newBatch);
+      localStorage.setItem(STORAGE_KEYS.RESPONSES, JSON.stringify(responses));
+
+      renderDashboard();
+      showToast("체험용 샘플 응답 5건이 추가되었습니다!");
+    }
+
+    /**
+     * CSV 형식으로 전체 응답 데이터 엑셀 다운로드 (한글 인코딩 BOM 지원, 회사명/이름/직책 분리, 20문항 & 5개 영역)
+     */
+    function downloadCSVReport() {
+      const responses = getStoredResponses();
+      if (responses.length === 0) {
+        showToast("다운로드할 응답 데이터가 없습니다.");
+        return;
+      }
+
+      const classes = getStoredClasses();
+      const classMap = {};
+      classes.forEach(c => { classMap[c.id] = c.name; });
+
+      // CSV 헤더 행 정의 (회사명, 이름, 직책 3가지 분리 표기)
+      const headers = [
+        "응답ID",
+        "제출일시",
+        "교육클래스명",
+        "회사명",
+        "이름",
+        "직책",
+        // 20개 문항 (팀원 자가진단)
+        "Q1_결과물사실검증(EVAL)",
+        "Q2_오류환각수정(EVAL)",
+        "Q3_재프롬프팅완성도(EVAL)",
+        "Q4_자기노력가치부가(EVAL)",
+        "Q5_데이터근거분석(CONFLICT)",
+        "Q6_위험도판단기준(CONFLICT)",
+        "Q7_실무경험종합결정(CONFLICT)",
+        "Q8_담당자최종책임(CONFLICT)",
+        "Q9_비효율관행제거(REDESIGN)",
+        "Q10_루틴자동화재설계(REDESIGN)",
+        "Q11_AI위임역할구분(REDESIGN)",
+        "Q12_고부가가치투자(REDESIGN)",
+        "Q13_면담보고사전준비(PEOPLE)",
+        "Q14_명확객관적협업소통(PEOPLE)",
+        "Q15_갈등완화공감소통(PEOPLE)",
+        "Q16_정중명확문장정제(PEOPLE)",
+        "Q17_동료노하우나눔(EQUALIZE)",
+        "Q18_우수프롬프트공유(EQUALIZE)",
+        "Q19_사내보안윤리준수(EQUALIZE)",
+        "Q20_주도적실험분위기(EQUALIZE)",
+        // 5대 영역 평균
+        "EVAL_결과물검증완성도_평균",
+        "CONFLICT_판단충돌의사결정_평균",
+        "REDESIGN_업무AI재설계_평균",
+        "PEOPLE_협업소통AI접목_평균",
+        "EQUALIZE_격차해소동료평준화_평균",
+        "종합평균",
+        "주관식_실천의견"
+      ];
+
+      // 데이터 행 구성
+      const rows = responses.map(r => {
+        const ans = r.answers || {};
+        const qVals = [];
+        for (let i = 1; i <= 20; i++) {
+          qVals.push(Number(ans[i] || 0));
+        }
+
+        const evalAvg = ((qVals[0] + qVals[1] + qVals[2] + qVals[3]) / 4).toFixed(2);
+        const conflictAvg = ((qVals[4] + qVals[5] + qVals[6] + qVals[7]) / 4).toFixed(2);
+        const redesignAvg = ((qVals[8] + qVals[9] + qVals[10] + qVals[11]) / 4).toFixed(2);
+        const peopleAvg = ((qVals[12] + qVals[13] + qVals[14] + qVals[15]) / 4).toFixed(2);
+        const equalizeAvg = ((qVals[16] + qVals[17] + qVals[18] + qVals[19]) / 4).toFixed(2);
+        const totalAvg = ((Number(evalAvg) + Number(conflictAvg) + Number(redesignAvg) + Number(peopleAvg) + Number(equalizeAvg)) / 5).toFixed(2);
+
+        const dateFormatted = new Date(r.submittedAt).toLocaleString("ko-KR");
+        const className = classMap[r.classId] || r.classId;
+
+        // CSV 특수문자 및 쉼표 치환 처리
+        const safeEssay = (r.essay || "").replace(/"/g, '""');
+
+        return [
+          `"${r.id}"`,
+          `"${dateFormatted}"`,
+          `"${className}"`,
+          `"${r.respondentCompany || '-'}"`,
+          `"${r.respondentName || '익명'}"`,
+          `"${r.respondentRole || r.respondentDept || '-'}"`,
+          ...qVals,
+          evalAvg, conflictAvg, redesignAvg, peopleAvg, equalizeAvg, totalAvg,
+          `"${safeEssay}"`
+        ].join(",");
+      });
+
+      // UTF-8 BOM (\uFEFF) 추가하여 엑셀에서 한글 깨짐 방지
+      const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\r\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      
+      const downloadLink = document.createElement("a");
+      const fileName = `AI_실무_5대역량_진단결과_팀원용_${new Date().toISOString().slice(0,10)}.csv`;
+      downloadLink.setAttribute("href", url);
+      downloadLink.setAttribute("download", fileName);
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+
+      showToast("엑셀(CSV) 리포트가 성공적으로 다운로드되었습니다.");
+    }
+
+    /**
+     * 데이터 초기화 처리
+     */
+    function handleClearData() {
+      if (confirm("정말로 모든 진단 응답 데이터를 초기화하시겠습니까?\n(클래스 정보는 유지됩니다)")) {
+        localStorage.removeItem(STORAGE_KEYS.RESPONSES);
+        renderDashboard();
+        showToast("응답 데이터가 초기화되었습니다.");
+      }
+    }
+
+    /* ==========================================================================
+       [유틸리티 및 데이터 헬퍼 함수]
+       ========================================================================== */
+    function getStoredClasses() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.CLASSES);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        console.error("클래스 데이터 로드 실패", e);
+        return [];
+      }
+    }
+
+    function getStoredResponses() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.RESPONSES);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        console.error("응답 데이터 로드 실패", e);
+        return [];
+      }
+    }
+
+    function syncClassSelectDropdowns() {
+      const classes = getStoredClasses();
+      const activeId = localStorage.getItem(STORAGE_KEYS.ACTIVE_CLASS_ID);
+
+      // 설문 응답 화면의 셀렉트박스
+      const surveySelect = document.getElementById("surveyClassSelect");
+      if (surveySelect) {
+        surveySelect.innerHTML = classes.map(c => 
+          `<option value="${c.id}" ${c.id === activeId ? 'selected' : ''}>${c.name} (${c.date})</option>`
+        ).join("");
+      }
+
+      // 대시보드 필터의 셀렉트박스
+      const dashSelect = document.getElementById("dashClassFilter");
+      if (dashSelect) {
+        const currentVal = dashSelect.value;
+        dashSelect.innerHTML = `
+          <option value="ALL">전체 통합 진단 결과</option>
+          ${classes.map(c => `<option value="${c.id}">${c.name} (${c.date})</option>`).join("")}
+        `;
+        if (currentVal) dashSelect.value = currentVal;
+      }
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      if (!toast) return;
+      toast.innerText = message;
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 3000);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
